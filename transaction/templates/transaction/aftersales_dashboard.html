@@ -1,0 +1,345 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">داشبورد</span>
+        <span>خدمات پس از فروش</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ====== آمار سریع ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.pending }}</h3>
+                    <p class="mb-0"><i class="fas fa-clock"></i> در انتظار تماس</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.follow_up }}</h3>
+                    <p class="mb-0"><i class="fas fa-phone"></i> نیاز به پیگیری</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.satisfied }}</h3>
+                    <p class="mb-0"><i class="fas fa-smile"></i> رضایت مشتری</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.unsatisfied }}</h3>
+                    <p class="mb-0"><i class="fas fa-frown"></i> نارضایتی مشتری</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== در انتظار تماس ====== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-clock"></i> در انتظار تماس ({{ stats.pending }})</h5>
+        </div>
+        <div class="card-body dark_back_color">
+            {% if pending_services %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>مشتری</th>
+                                <th>مالک فایل</th>
+                                <th>ملک</th>
+                                <th>رضایت مشتری</th>
+                                <th>رضایت مالک</th>
+                                <th>تاریخ ایجاد</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in pending_services %}
+                            <tr>
+                                <td>
+                                    <strong>{{ service.customer.full_name }}</strong>
+                                    <br><small class="text-muted">{{ service.customer.mobile }}</small>
+                                </td>
+                                <td>
+                                    {% with owner=service.property_owner %}
+                                        {% if owner %}
+                                            {{ owner.get_full_name }}
+                                            <br><small class="text-muted">{{ owner.mobile }}</small>
+                                        {% else %}
+                                            <span class="text-muted">نامشخص</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>{{ service.contract.property_title|truncatechars:20 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction_owner == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction_owner == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction_owner == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_owner_display }}
+                                    </span>
+                                </td>
+                                <td>{{ service.created_at|show_jalali }}</td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1 justify-content-center">
+                                        <a href="{% url 'transaction:aftersales_update' service.id %}" class="btn btn-sm btn-success" title="ثبت تماس / ویرایش">
+                                            <i class="fas fa-phone"></i>
+                                        </a>
+                                        <a href="{% url 'transaction:aftersales_detail' service.id %}" class="btn btn-sm btn-info" title="جزئیات خدمات">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'case_management:supervisor_process_detail' service.contract.process.id %}" class="btn btn-sm btn-primary" title="جزئیات فرآیند" target="_blank">
+                                            <i class="fas fa-tasks"></i>
+                                        </a>
+                                        <a href="{% url 'transaction:contract_detail' service.contract.id %}" class="btn btn-sm btn-warning" title="جزئیات قرارداد" target="_blank">
+                                            <i class="fas fa-file-contract"></i>
+                                        </a>
+                                        {% if service.contract.commission %}
+                                            <a href="{% url 'transaction:commission_detail' service.contract.commission.id %}" class="btn btn-sm btn-secondary" title="جزئیات حسابداری" target="_blank">
+                                                <i class="fas fa-calculator"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-success text-center">✅ هیچ موردی در انتظار تماس نیست.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ====== نیاز به پیگیری ====== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-phone"></i> نیاز به پیگیری ({{ stats.follow_up }})</h5>
+        </div>
+        <div class="card-body dark_back_color">
+            {% if follow_up_services %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>مشتری</th>
+                                <th>مالک فایل</th>
+                                <th>ملک</th>
+                                <th>رضایت مشتری</th>
+                                <th>رضایت مالک</th>
+                                <th>زمان پیگیری بعدی</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in follow_up_services %}
+                            <tr {% if service.is_follow_up_due %}class="table-danger"{% endif %}>
+                                <td>
+                                    <strong>{{ service.customer.full_name }}</strong>
+                                    <br><small class="text-muted">{{ service.customer.mobile }}</small>
+                                </td>
+                                <td>
+                                    {% with owner=service.property_owner %}
+                                        {% if owner %}
+                                            {{ owner.get_full_name }}
+                                            <br><small class="text-muted">{{ owner.mobile }}</small>
+                                        {% else %}
+                                            <span class="text-muted">نامشخص</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>{{ service.contract.property_title|truncatechars:20 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction_owner == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction_owner == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction_owner == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_owner_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ service.next_follow_up_date|show_jalali|default:"---" }}
+                                    {% if service.is_follow_up_due %}
+                                        <span class="badge bg-danger">زمان آن رسیده!</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1 justify-content-center">
+                                        <a href="{% url 'transaction:aftersales_update' service.id %}" class="btn btn-sm btn-warning" title="پیگیری">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'transaction:aftersales_detail' service.id %}" class="btn btn-sm btn-info" title="جزئیات خدمات">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'case_management:supervisor_process_detail' service.contract.process.id %}" class="btn btn-sm btn-primary" title="جزئیات فرآیند" target="_blank">
+                                            <i class="fas fa-tasks"></i>
+                                        </a>
+                                        <a href="{% url 'transaction:contract_detail' service.contract.id %}" class="btn btn-sm btn-warning" title="جزئیات قرارداد" target="_blank">
+                                            <i class="fas fa-file-contract"></i>
+                                        </a>
+                                        {% if service.contract.commission %}
+                                            <a href="{% url 'transaction:commission_detail' service.contract.commission.id %}" class="btn btn-sm btn-secondary" title="جزئیات حسابداری" target="_blank">
+                                                <i class="fas fa-calculator"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-secondary text-center">هیچ موردی نیاز به پیگیری ندارد.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ====== آمار رضایت و معرفی ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-smile"></i> رضایت مشتریان</h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="d-flex justify-content-around">
+                        <div class="text-center">
+                            <h3 class="text-success">{{ stats.satisfied }}</h3>
+                            <p>رضایت‌مند</p>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-danger">{{ stats.unsatisfied }}</h3>
+                            <p>ناراضی</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-building"></i> رضایت مالکان فایل</h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="d-flex justify-content-around">
+                        <div class="text-center">
+                            <h3 class="text-success">{{ stats.satisfied_owner }}</h3>
+                            <p>رضایت‌مند</p>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-danger">{{ stats.unsatisfied_owner }}</h3>
+                            <p>ناراضی</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-gift"></i> نتایج پیگیری</h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="d-flex justify-content-around">
+                        <div class="text-center">
+                            <h3 class="text-success">{{ stats.new_referrals }}</h3>
+                            <p>معرفی مشتری جدید</p>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-warning">{{ stats.loyal_customers }}</h3>
+                            <p>مشتری وفادار</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function fastFollowUp(serviceId) {
+        if (!confirm('آیا از ثبت پیگیری برای این مشتری اطمینان دارید؟')) return;
+
+        const formData = new FormData();
+        formData.append('aftersales_id', serviceId);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch('{% url "transaction:aftersales_fast_follow_up" %}', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ خطا: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('❌ خطا در ارتباط با سرور');
+            console.error(error);
+        });
+    }
+</script>
+
+<style>
+    .table td { vertical-align: middle; }
+    .table th { vertical-align: middle; }
+    .badge { font-size: 0.85rem; }
+    .card { transition: all 0.3s ease; }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .slider-parent { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .table-danger td { background-color: #f8d7da !important; }
+    .btn-sm { padding: 0.2rem 0.4rem; font-size: 0.75rem; }
+    .d-flex.gap-1 { gap: 0.2rem; }
+</style>
+{% endblock %}

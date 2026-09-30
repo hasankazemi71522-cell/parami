@@ -1,0 +1,56 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">فرم‌های</span>
+            <span>در دسترس</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if templates %}
+                <div class="row">
+                    {% for template in templates %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body dark_back_color">
+                                    <h5 class="card-title">{{ template.title }}</h5>
+                                    <p class="card-text text-muted">{{ template.description|default:"بدون توضیحات" }}</p>
+                                    <p>
+                                        <span class="badge bg-info">تعداد فیلدها: {{ template.forminput_set.count }}</span>
+                                        {% if template.allowed_roles.exists %}
+                                            {% for role in template.allowed_roles.all %}
+                                                <span class="badge bg-primary">{{ role.title }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">همه کاربران</span>
+                                        {% endif %}
+                                    </p>
+                                    <a href="{% url 'form_flow:create_form_instance' template.id %}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> شروع فرم
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">هیچ فرم در دسترسی برای شما وجود ندارد</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

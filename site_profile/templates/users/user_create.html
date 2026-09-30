@@ -1,0 +1,116 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block Header_ref %}
+{% endblock %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">افزودن</span>
+            <span>کاربر جدید</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <!-- نام کاربری -->
+                    <div class="col-md-6 mb-3">
+                        <label for="username" class="form-label">نام کاربری <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               value="{{ form_data.username|default:'' }}" required>
+                    </div>
+
+                    <!-- موبایل -->
+                    <div class="col-md-6 mb-3">
+                        <label for="mobile" class="form-label">شماره موبایل</label>
+                        <input type="text" class="form-control" id="mobile" name="mobile"
+                               value="{{ form_data.mobile|default:'' }}">
+                    </div>
+
+                    <!-- نام -->
+                    <div class="col-md-6 mb-3">
+                        <label for="first_name" class="form-label">نام</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name"
+                               value="{{ form_data.first_name|default:'' }}">
+                    </div>
+
+                    <!-- نام خانوادگی -->
+                    <div class="col-md-6 mb-3">
+                        <label for="last_name" class="form-label">نام خانوادگی</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name"
+                               value="{{ form_data.last_name|default:'' }}">
+                    </div>
+
+                    <!-- ایمیل -->
+                    <div class="col-md-12 mb-3">
+                        <label for="email" class="form-label">ایمیل</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                               value="{{ form_data.email|default:'' }}">
+                    </div>
+
+                    <!-- رمز عبور -->
+                    <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label">رمز عبور <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+
+                    <!-- تکرار رمز عبور -->
+                    <div class="col-md-6 mb-3">
+                        <label for="confirm_password" class="form-label">تکرار رمز عبور <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+
+                    <!-- نقش‌ها -->
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">نقش‌ها</label>
+                        <div class="row">
+                            {% for role in roles %}
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input"
+                                               id="role_{{ role.name }}" name="roles" value="{{ role.name }}">
+                                        <label class="form-check-label" for="role_{{ role.name }}">
+                                            {{ role.title }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- وضعیت -->
+                    <div class="col-md-12 mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">فعال</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> ایجاد کاربر
+                    </button>
+                    <a href="{% url 'site_profile:user_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-right"></i> بازگشت
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block Footer_ref %}
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">ایجاد</span>
+        <span>شهرستان جدید</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+    <form method="POST" class="row g-4">
+        {% csrf_token %}
+
+        <div class="col-md-6">
+            <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                نام شهرستان <span class="text-danger">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+            {% endif %}
+            {% if form.name.help_text %}
+            <div class="form-text text-muted small">{{ form.name.help_text }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <label for="{{ form.province.id_for_label }}" class="form-label fw-bold">
+                استان <span class="text-danger">*</span>
+            </label>
+            {{ form.province }}
+            {% if form.province.errors %}
+            <div class="text-danger small mt-1">{{ form.province.errors }}</div>
+            {% endif %}
+            {% if form.province.help_text %}
+            <div class="form-text text-muted small">{{ form.province.help_text }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <label for="{{ form.code.id_for_label }}" class="form-label fw-bold">
+                کد شهرستان
+            </label>
+            {{ form.code }}
+            {% if form.code.errors %}
+            <div class="text-danger small mt-1">{{ form.code.errors }}</div>
+            {% endif %}
+            {% if form.code.help_text %}
+            <div class="form-text text-muted small">{{ form.code.help_text }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <label for="{{ form.center_latitude.id_for_label }}" class="form-label fw-bold">
+                عرض جغرافیایی
+            </label>
+            {{ form.center_latitude }}
+            {% if form.center_latitude.errors %}
+            <div class="text-danger small mt-1">{{ form.center_latitude.errors }}</div>
+            {% endif %}
+            {% if form.center_latitude.help_text %}
+            <div class="form-text text-muted small">{{ form.center_latitude.help_text }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <label for="{{ form.center_longitude.id_for_label }}" class="form-label fw-bold">
+                طول جغرافیایی
+            </label>
+            {{ form.center_longitude }}
+            {% if form.center_longitude.errors %}
+            <div class="text-danger small mt-1">{{ form.center_longitude.errors }}</div>
+            {% endif %}
+            {% if form.center_longitude.help_text %}
+            <div class="form-text text-muted small">{{ form.center_longitude.help_text }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-12 mt-4 pt-3 border-top">
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary px-4 py-2">
+                    <i class="fas fa-save"></i> ذخیره
+                </button>
+                <a href="{% url 'estate:city_list' %}" class="btn btn-secondary px-4 py-2">
+                    <i class="fas fa-times"></i> انصراف
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

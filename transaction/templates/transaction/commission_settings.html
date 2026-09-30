@@ -1,0 +1,97 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">تنظیمات</span>
+        <span>کمیسیون</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-cog"></i> ویرایش درصدهای کمیسیون</h5>
+        </div>
+        <div class="card-body dark_back_color">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.property_register_share.label }}</label>
+                        {{ form.property_register_share }}
+                        {% if form.property_register_share.errors %}
+                            <div class="text-danger small">{{ form.property_register_share.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.customer_register_share.label }}</label>
+                        {{ form.customer_register_share }}
+                        {% if form.customer_register_share.errors %}
+                            <div class="text-danger small">{{ form.customer_register_share.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.expert_share.label }}</label>
+                        {{ form.expert_share }}
+                        {% if form.expert_share.errors %}
+                            <div class="text-danger small">{{ form.expert_share.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.supervisor_share.label }}</label>
+                        {{ form.supervisor_share }}
+                        {% if form.supervisor_share.errors %}
+                            <div class="text-danger small">{{ form.supervisor_share.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.meeting_manager_share.label }}</label>
+                        {{ form.meeting_manager_share }}
+                        {% if form.meeting_manager_share.errors %}
+                            <div class="text-danger small">{{ form.meeting_manager_share.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.note.label }}</label>
+                        {{ form.note }}
+                        {% if form.note.errors %}
+                            <div class="text-danger small">{{ form.note.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> ذخیره تنظیمات
+                    </button>
+                    <a href="{% url 'transaction:commission_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> انصراف
+                    </a>
+                </div>
+            </form>
+
+            <div class="mt-3 text-muted">
+                <small><i class="fas fa-info-circle"></i> آخرین بروزرسانی: {{ settings.updated_at|default:"---" }} توسط {{ settings.updated_by.get_full_name|default:"---" }}</small>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

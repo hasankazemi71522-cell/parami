@@ -1,0 +1,221 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">محاسبه</span>
+        <span>کمیسیون</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-calculator"></i> فرم محاسبه کمیسیون</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>مشتری:</strong> {{ commission.contract.customer.full_name|default:"---" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>ملک:</strong> {{ commission.contract.property_title|default:"---" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>مبلغ کل معامله:</strong> {{ commission.total_amount }} تومان
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <strong class="text-success">مبلغ کل کمیسیون:</strong>
+                        <span class="badge bg-success fs-6">{{ commission.total_commission }} تومان</span>
+                        <small class="text-muted">(سهم‌ها بر اساس این مبلغ محاسبه می‌شوند)</small>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <!-- سهم ثبت‌کننده فایل -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            {{ form.property_register_share.label }}
+                            {% if shares.property_register.recipient %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user"></i> {{ shares.property_register.recipient.get_full_name }}
+                                    <span class="badge bg-secondary">{{ shares.property_register.recipient.mobile|default:"" }}</span>
+                                </small>
+                            {% else %}
+                                <small class="text-muted d-block">گیرنده: تعیین نشده</small>
+                            {% endif %}
+                        </label>
+                        {{ form.property_register_share }}
+                        {% if form.property_register_share.errors %}
+                            <div class="text-danger small">{{ form.property_register_share.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- سهم ثبت‌کننده مشتری -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            {{ form.customer_register_share.label }}
+                            {% if shares.customer_register.recipient %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user"></i> {{ shares.customer_register.recipient.get_full_name }}
+                                    <span class="badge bg-secondary">{{ shares.customer_register.recipient.mobile|default:"" }}</span>
+                                </small>
+                            {% else %}
+                                <small class="text-muted d-block">گیرنده: تعیین نشده</small>
+                            {% endif %}
+                        </label>
+                        {{ form.customer_register_share }}
+                        {% if form.customer_register_share.errors %}
+                            <div class="text-danger small">{{ form.customer_register_share.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- سهم کارشناس -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            {{ form.expert_share.label }}
+                            {% if shares.expert.recipient %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user-tie"></i> {{ shares.expert.recipient.get_full_name }}
+                                    <span class="badge bg-secondary">{{ shares.expert.recipient.mobile|default:"" }}</span>
+                                </small>
+                            {% else %}
+                                <small class="text-muted d-block">گیرنده: تعیین نشده</small>
+                            {% endif %}
+                        </label>
+                        {{ form.expert_share }}
+                        {% if form.expert_share.errors %}
+                            <div class="text-danger small">{{ form.expert_share.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- سهم سرپرست -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            {{ form.supervisor_share.label }}
+                            {% if shares.supervisor.recipient %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user-tie"></i> {{ shares.supervisor.recipient.get_full_name }}
+                                    <span class="badge bg-secondary">{{ shares.supervisor.recipient.mobile|default:"" }}</span>
+                                </small>
+                            {% else %}
+                                <small class="text-muted d-block">گیرنده: تعیین نشده</small>
+                            {% endif %}
+                        </label>
+                        {{ form.supervisor_share }}
+                        {% if form.supervisor_share.errors %}
+                            <div class="text-danger small">{{ form.supervisor_share.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- سهم مدیر جلسه -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            {{ form.meeting_manager_share.label }}
+                            {% if shares.meeting_manager.recipient %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user-tie"></i> {{ shares.meeting_manager.recipient.get_full_name }}
+                                    <span class="badge bg-secondary">{{ shares.meeting_manager.recipient.mobile|default:"" }}</span>
+                                </small>
+                            {% else %}
+                                <small class="text-muted d-block">گیرنده: تعیین نشده</small>
+                            {% endif %}
+                        </label>
+                        {{ form.meeting_manager_share }}
+                        {% if form.meeting_manager_share.errors %}
+                            <div class="text-danger small">{{ form.meeting_manager_share.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> محاسبه و ذخیره
+                    </button>
+                    <a href="{% url 'transaction:commission_detail' commission.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> انصراف
+                    </a>
+                </div>
+            </form>
+
+            <div class="mt-3 text-muted">
+                <small><i class="fas fa-info-circle"></i>
+                    درصدها بر اساس تنظیمات پیش‌فرض پر شده‌اند. در صورت نیاز ویرایش کنید.
+                    مجموع درصدها نباید از ۱۰۰ بیشتر شود.
+                    <br>
+                    <strong>نکته:</strong> مبالغ سهم‌ها از <strong>مبلغ کل کمیسیون ({{ commission.total_commission }} تومان)</strong> محاسبه می‌شوند.
+                </small>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const percentInputs = document.querySelectorAll('input[type="number"]');
+
+        percentInputs.forEach(function(input) {
+            input.setAttribute('step', '1');
+
+            input.addEventListener('input', function(e) {
+                let val = this.value;
+                if (val.includes('.') || val.includes(',')) {
+                    val = val.replace(/[.,]/g, '');
+                    this.value = val;
+                }
+                if (val !== '' && isNaN(parseInt(val))) {
+                    this.value = '';
+                } else if (val !== '') {
+                    this.value = parseInt(val);
+                }
+            });
+
+            input.addEventListener('blur', function() {
+                let val = this.value;
+                if (val !== '' && !isNaN(parseInt(val))) {
+                    this.value = parseInt(val);
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .slider-parent { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card { transition: all 0.3s ease; }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    input[type="number"] { text-align: center; }
+    input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+    .form-control:focus, .form-select:focus {
+        border-color: #0dcaf0;
+        box-shadow: 0 0 0 0.2rem rgba(13,202,240,0.25);
+    }
+    .badge { font-size: 1rem; padding: 0.5rem 1rem; }
+    .form-label small { font-size: 0.85rem; }
+    .form-label .badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+</style>
+{% endblock %}

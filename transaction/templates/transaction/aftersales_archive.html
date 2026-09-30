@@ -1,0 +1,212 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">آرشیو</span>
+        <span>خدمات پس از فروش</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ====== آمار ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.total_contacted }}</h3>
+                    <p class="mb-0"><i class="fas fa-phone"></i> تماس گرفته شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-secondary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.total_closed }}</h3>
+                    <p class="mb-0"><i class="fas fa-check-double"></i> بسته شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.total_all }}</h3>
+                    <p class="mb-0"><i class="fas fa-folder-open"></i> کل پرونده‌ها</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== جستجو ====== -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control" placeholder="جستجو بر اساس نام، موبایل یا عنوان ملک..." value="{{ search }}">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                {% if search %}
+                    <a href="{% url 'transaction:aftersales_archive' %}" class="btn btn-secondary"><i class="fas fa-times"></i></a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'transaction:aftersales_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت به داشبورد
+            </a>
+        </div>
+    </div>
+
+    <!-- ====== تماس گرفته شده ====== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-phone"></i> تماس گرفته شده ({{ stats.total_contacted }})</h5>
+        </div>
+        <div class="card-body dark_back_color">
+            {% if contacted_services %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>مشتری</th>
+                                <th>ملک</th>
+                                <th>رضایت مشتری</th>
+                                <th>رضایت مالک</th>
+                                <th>تاریخ تماس</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in contacted_services %}
+                            <tr>
+                                <td>
+                                    <strong>{{ service.customer.full_name }}</strong>
+                                    <br><small class="text-muted">{{ service.customer.mobile }}</small>
+                                </td>
+                                <td>{{ service.contract.property_title|truncatechars:20 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction_owner == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction_owner == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction_owner == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_owner_display }}
+                                    </span>
+                                </td>
+                                <td>{{ service.contact_date|show_jalali|default:"---" }}</td>
+                                <td>
+                                    <a href="{% url 'transaction:aftersales_detail' service.id %}" class="btn btn-sm btn-info" title="جزئیات">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'transaction:aftersales_update' service.id %}" class="btn btn-sm btn-warning" title="ویرایش">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                {% include 'shared_index/_pagination.html' with page_obj=contacted_services %}
+            {% else %}
+                <div class="alert alert-secondary text-center">هیچ پرونده تماس گرفته شده‌ای وجود ندارد.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ====== بسته شده ====== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-check-double"></i> بسته شده ({{ stats.total_closed }})</h5>
+        </div>
+        <div class="card-body dark_back_color">
+            {% if closed_services %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>مشتری</th>
+                                <th>ملک</th>
+                                <th>رضایت مشتری</th>
+                                <th>رضایت مالک</th>
+                                <th>تاریخ بسته شدن</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in closed_services %}
+                            <tr>
+                                <td>
+                                    <strong>{{ service.customer.full_name }}</strong>
+                                    <br><small class="text-muted">{{ service.customer.mobile }}</small>
+                                </td>
+                                <td>{{ service.contract.property_title|truncatechars:20 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if service.satisfaction_owner == 'satisfied' %}bg-success
+                                        {% elif service.satisfaction_owner == 'neutral' %}bg-warning text-dark
+                                        {% elif service.satisfaction_owner == 'unsatisfied' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ service.get_satisfaction_owner_display }}
+                                    </span>
+                                </td>
+                                <td>{{ service.closed_at|show_jalali|default:"---" }}</td>
+                                <td>
+                                    <a href="{% url 'transaction:aftersales_detail' service.id %}" class="btn btn-sm btn-info" title="جزئیات">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                {% include 'shared_index/_pagination.html' with page_obj=closed_services %}
+            {% else %}
+                <div class="alert alert-secondary text-center">هیچ پرونده بسته شده‌ای وجود ندارد.</div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .table td { vertical-align: middle; }
+    .table th { vertical-align: middle; }
+    .badge { font-size: 0.85rem; }
+    .card { transition: all 0.3s ease; }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .slider-parent { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .btn-sm { padding: 0.2rem 0.4rem; font-size: 0.75rem; }
+</style>
+{% endblock %}

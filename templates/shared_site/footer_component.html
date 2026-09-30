@@ -1,0 +1,268 @@
+<!-- templates/shared_site/footer_component.html -->
+{% load static %}
+
+<!-- ============================================================
+     فوتر اصلی (بخش بالایی)
+     ============================================================ -->
+<footer class="footer-main py-5">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- ستون اول: لوگو و توضیحات -->
+            <div class="col-lg-4 col-md-6">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <img src="{% static 'myassets/myimage/logo/logo.jpeg' %}" alt="پارمی" height="45">
+                    <span class="fw-bold fs-4 footer-brand">پارمی</span>
+                </div>
+                <p class="footer-text small lh-base">
+                    سامانه هوشمند مدیریت املاک، خرید، فروش و اجاره ملک.
+                    با بیش از ۱۰۰۰ ملک فعال و تیمی حرفه‌ای در خدمت شما هستیم.
+                </p>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="#" class="footer-link">درباره ما</a>
+                    <span class="footer-link-sep">|</span>
+                    <a href="#" class="footer-link">تماس با ما</a>
+                    <span class="footer-link-sep">|</span>
+                    <a href="#" class="footer-link">قوانین</a>
+                </div>
+            </div>
+
+            <!-- ستون دوم: لینک‌های سریع -->
+            <div class="col-lg-2 col-md-6">
+                <h6 class="fw-bold footer-heading">دسترسی سریع</h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2"><a href="/" class="footer-link">صفحه اصلی</a></li>
+                    <li class="mb-2"><a href="/search_file" class="footer-link">جستجوی ملک</a></li>
+                    <li class="mb-2"><a href="/record_file/{{ this_user.id }}" class="footer-link">ثبت فایل</a></li>
+                    <li class="mb-2"><a href="/rules" class="footer-link">قوانین</a></li>
+                </ul>
+            </div>
+
+            <!-- ستون سوم: اطلاعات تماس -->
+            <div class="col-lg-3 col-md-6">
+                <h6 class="fw-bold footer-heading">تماس با ما</h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-geo-alt footer-icon me-2"></i>
+                        <span class="footer-text">تهران، خیابان ولیعصر، پلاک ۱۲۳</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-telephone footer-icon me-2"></i>
+                        <span class="footer-text">۰۲۱-۱۲۳۴۵۶۷۸</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-envelope footer-icon me-2"></i>
+                        <span class="footer-text">info@parmi.ir</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-clock footer-icon me-2"></i>
+                        <span class="footer-text">شنبه تا پنجشنبه ۹ الی ۱۸</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- ستون چهارم: شبکه‌های اجتماعی -->
+            <div class="col-lg-3 col-md-6">
+                <h6 class="fw-bold footer-heading">ما را دنبال کنید</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="#" class="btn footer-social rounded-circle d-flex align-items-center justify-content-center"
+                       style="width:40px;height:40px;padding:0;" aria-label="اینستاگرام">
+                        <i class="bi bi-instagram fs-5"></i>
+                    </a>
+                    <a href="#" class="btn footer-social rounded-circle d-flex align-items-center justify-content-center"
+                       style="width:40px;height:40px;padding:0;" aria-label="تلگرام">
+                        <i class="bi bi-telegram fs-5"></i>
+                    </a>
+                    <a href="#" class="btn footer-social rounded-circle d-flex align-items-center justify-content-center"
+                       style="width:40px;height:40px;padding:0;" aria-label="واتساپ">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                    </a>
+                    <a href="#" class="btn footer-social rounded-circle d-flex align-items-center justify-content-center"
+                       style="width:40px;height:40px;padding:0;" aria-label="آپارات">
+                        <i class="bi bi-play-circle fs-5"></i>
+                    </a>
+                    <a href="#" class="btn footer-social rounded-circle d-flex align-items-center justify-content-center"
+                       style="width:40px;height:40px;padding:0;" aria-label="لینکدین">
+                        <i class="bi bi-linkedin fs-5"></i>
+                    </a>
+                </div>
+                <p class="footer-text small mt-3 mb-0">
+                    با ما در شبکه‌های اجتماعی همراه باشید.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</footer>
+
+<!-- ============================================================
+     فوتر پایینی (بخش برنامه‌نویسی - کپی‌رایت)
+     ============================================================ -->
+<div class="footer-bottom py-3">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start small">
+                <span class="footer-bottom-text">© 1405 تمامی حقوق محفوظ است.</span>
+                <span class="footer-bottom-text mx-1">|</span>
+                <span class="footer-bottom-brand">پارمی</span>
+            </div>
+            <div class="col-md-6 text-center text-md-end small">
+                <span class="footer-bottom-text">طراحی و توسعه</span>
+                <span class="footer-bottom-text mx-1">|</span>
+                <a href="https://www.instagram.com/mrpyweb?igsh=MW1qZmFqM3JpZTZjZA==" class="footer-social-icon me-1" aria-label="اینستاگرام"><i class="bi bi-instagram"></i></a>
+                <a href="https://t.me/mrpyweb" class="footer-social-icon me-1" aria-label="تلگرام"><i class="bi bi-telegram"></i></a>
+                <a href="https://wa.me/09022688118" class="footer-social-icon me-1" aria-label="واتساپ"><i class="bi bi-whatsapp"></i></a>
+                <a href="tel:09022688118" class="footer-social-icon me-1" aria-label="تماس"><i class="bi bi-telephone"></i></a>
+                <span class="footer-bottom-brand">mrpyweb</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     استایل‌های اختصاصی (با override کامل برای رفع مشکل تصویر پس‌زمینه)
+     ============================================================ -->
+<style>
+    /* ====== حذف هرگونه تصویر پس‌زمینه از فوتر ====== */
+    .footer-main,
+    .footer-bottom {
+        background-image: none !important;
+        background: none !important;
+    }
+
+    /* ====== استایل‌های عمومی ====== */
+    .footer-main {
+        transition: background-color 0.3s ease, color 0.3s ease;
+        border-top: 1px solid #dee2e6;
+        background-color: #ffffff !important;
+    }
+    .footer-logo-img {
+        filter: var(--logo-filter, none);
+        transition: filter 0.3s ease;
+    }
+    .footer-brand {
+        font-weight: 700;
+        font-size: 1.4rem;
+        transition: color 0.3s ease;
+        color: #212529 !important;
+    }
+    .footer-heading {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        transition: color 0.3s ease;
+        color: #212529 !important;
+    }
+    .footer-text {
+        font-size: 0.9rem;
+        line-height: 1.7;
+        transition: color 0.3s ease;
+        color: #6c757d !important;
+    }
+    .footer-link {
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s ease;
+        color: #6c757d !important;
+    }
+    .footer-link:hover {
+        text-decoration: underline;
+        color: #0d6efd !important;
+    }
+    .footer-link-sep {
+        font-size: 0.9rem;
+        color: #adb5bd !important;
+    }
+    .footer-icon {
+        font-size: 1rem;
+        transition: color 0.3s ease;
+        color: #0d6efd !important;
+    }
+    .footer-social {
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+        color: #6c757d !important;
+        background-color: transparent !important;
+    }
+    .footer-social:hover {
+        transform: translateY(-2px);
+        background-color: #0d6efd !important;
+        color: #ffffff !important;
+        border-color: #0d6efd !important;
+    }
+
+    .footer-bottom {
+        transition: background-color 0.3s ease;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        background-color: #1a1a2e !important;
+        background-image: none !important;
+    }
+    .footer-bottom-text {
+        font-size: 0.85rem;
+        transition: color 0.3s ease;
+        color: rgba(255,255,255,0.5) !important;
+    }
+    .footer-bottom-brand {
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: color 0.3s ease;
+        color: #ffffff !important;
+    }
+
+    /* ==========================================================
+       تم دارک (با override کامل)
+       ========================================================== */
+    [data-bs-theme="dark"] .footer-main {
+        background-color: #1a1a2e !important;
+        border-top-color: rgba(255,255,255,0.1) !important;
+        background-image: none !important;
+    }
+    [data-bs-theme="dark"] .footer-logo-img {
+        --logo-filter: brightness(0) invert(1);
+        filter: var(--logo-filter);
+    }
+    [data-bs-theme="dark"] .footer-brand {
+        color: #ffffff !important;
+    }
+    [data-bs-theme="dark"] .footer-heading {
+        color: #ffffff !important;
+    }
+    [data-bs-theme="dark"] .footer-text {
+        color: rgba(255,255,255,0.6) !important;
+    }
+    [data-bs-theme="dark"] .footer-link {
+        color: rgba(255,255,255,0.5) !important;
+    }
+    [data-bs-theme="dark"] .footer-link:hover {
+        color: #ffffff !important;
+    }
+    [data-bs-theme="dark"] .footer-link-sep {
+        color: rgba(255,255,255,0.2) !important;
+    }
+    [data-bs-theme="dark"] .footer-icon {
+        color: #0d6efd !important;
+    }
+    [data-bs-theme="dark"] .footer-social {
+        color: rgba(255,255,255,0.6) !important;
+        border-color: rgba(255,255,255,0.15) !important;
+        background-color: transparent !important;
+    }
+    [data-bs-theme="dark"] .footer-social:hover {
+        background-color: #0d6efd !important;
+        color: #ffffff !important;
+        border-color: #0d6efd !important;
+    }
+
+    /* ====== ریسپانسیو ====== */
+    @media (max-width: 768px) {
+        .footer-main .row > div {
+            text-align: center !important;
+        }
+        .footer-main .d-flex.align-items-center {
+            justify-content: center !important;
+        }
+        .footer-main .d-flex.gap-2 {
+            justify-content: center !important;
+        }
+    }
+</style>

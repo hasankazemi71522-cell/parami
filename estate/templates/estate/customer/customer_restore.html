@@ -1,0 +1,126 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">بازیابی</span>
+        <span>مشتری</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+    <div class="text-center py-5">
+        <i class="fas fa-undo text-success fa-4x mb-3"></i>
+        <h4>آیا از بازیابی مشتری "{% if "contact_information_show" in perimissin_list %}{{ customer.full_name }}{% else %}...........{% endif %}" مطمئن هستید؟</h4>
+        <p class="text-muted">
+            با بازیابی این مشتری، اطلاعات آن دوباره فعال خواهد شد و در لیست مشتریان قابل مشاهده خواهد بود.
+        </p>
+
+        <div class="card bg-light mb-4 mx-auto" style="max-width: 600px;">
+            <div class="card-body text-start">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>نام:</strong> {% if "contact_information_show" in perimissin_list %}{{ customer.full_name }}{% else %}عدم دسترسی به اطلاعات{% endif %}</p>
+                        <p><strong>موبایل:</strong> {% if "contact_information_show" in perimissin_list %}{{ customer.mobile }}{% else %}عدم دسترسی به اطلاعات{% endif %}</p>
+                        <p><strong>ایمیل:</strong> {{ customer.email|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>نوع:</strong> {{ customer.get_customer_type_display }}</p>
+                        <p><strong>وضعیت:</strong> {{ customer.get_status_display }}</p>
+                        <p><strong>اولویت:</strong> {{ customer.priority }}</p>
+                    </div>
+                </div>
+
+                <!-- کاربری‌های مورد نظر -->
+                {% if customer.preferred_usage_types.exists %}
+                <div class="mt-2">
+                    <strong>کاربری‌های مورد نظر:</strong>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        {% for usage in customer.preferred_usage_types.all|slice:":5" %}
+                            <span class="badge" style="background-color: {{ usage.color|default:'#6c757d' }};">
+                                <i class="fas {{ usage.icon|default:'fa-tag' }}"></i>
+                                {{ usage.name }}
+                            </span>
+                        {% endfor %}
+                        {% if customer.preferred_usage_types.count > 5 %}
+                            <span class="badge bg-secondary">+{{ customer.preferred_usage_types.count|add:"-5" }} مورد دیگر</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- نمایش مناطق مورد نظر -->
+                {% if customer.preferred_neighborhoods.exists %}
+                <div class="mt-2">
+                    <strong>مناطق مورد نظر:</strong>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        {% for neighborhood in customer.preferred_neighborhoods.all|slice:":5" %}
+                            <span class="badge bg-info">
+                                <i class="fas fa-map-pin"></i>
+                                {{ neighborhood.city.province.name }} - {{ neighborhood.city.name }} - {{ neighborhood.name }}
+                            </span>
+                        {% endfor %}
+                        {% if customer.preferred_neighborhoods.count > 5 %}
+                            <span class="badge bg-secondary">+{{ customer.preferred_neighborhoods.count|add:"-5" }} مورد دیگر</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- نمایش انواع ملک مورد نظر -->
+                {% if customer.preferred_property_types.exists %}
+                <div class="mt-2">
+                    <strong>انواع ملک مورد نظر:</strong>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        {% for prop_type in customer.preferred_property_types.all|slice:":5" %}
+                            <span class="badge bg-secondary">
+                                {% if prop_type.icon %}<i class="{{ prop_type.icon }}"></i>{% endif %}
+                                {{ prop_type.name }}
+                            </span>
+                        {% endfor %}
+                        {% if customer.preferred_property_types.count > 5 %}
+                            <span class="badge bg-secondary">+{{ customer.preferred_property_types.count|add:"-5" }} مورد دیگر</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- نمایش بودجه -->
+                <div class="mt-2">
+                    <strong>بودجه:</strong>
+                    <span class="text-muted">{{ customer.get_all_budget_display }}</span>
+                </div>
+
+                <!-- ✅ تاریخ حذف - شمسی -->
+                {% if customer.deleted_at_shamsi %}
+                <div class="mt-2">
+                    <strong>تاریخ حذف:</strong>
+                    <span class="text-danger">{{ customer.deleted_at_shamsi }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- هشدار درباره تطابق‌ها -->
+        {% if customer.matches.exists %}
+        <div class="alert alert-info mx-auto" style="max-width: 600px;">
+            <i class="fas fa-info-circle me-2"></i>
+            این مشتری دارای
+            <span class="badge bg-info text-dark">{{ customer.matches.count }}</span>
+            تطابق ثبت شده است که پس از بازیابی، همچنان قابل مشاهده خواهند بود.
+        </div>
+        {% endif %}
+
+        <form method="POST" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success px-5 py-2">
+                <i class="fas fa-undo"></i> بله، بازیابی کن
+            </button>
+            <a href="{% url 'estate:customer_detail' customer.id %}" class="btn btn-secondary px-5 py-2">
+                <i class="fas fa-times"></i> انصراف
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

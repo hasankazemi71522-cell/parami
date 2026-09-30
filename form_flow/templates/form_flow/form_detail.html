@@ -1,0 +1,452 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+{% load form_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">جزئیات</span>
+        <span>فرم</span>
+    </h4>
+</div>
+<div class="slider-parent rounded-4 border-ui content-box">
+    <div class="container-fluid">
+        <!-- ============ پیام‌ها ============ -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- ============ اطلاعات اصلی فرم ============ -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center dark_back_color">
+                <h4>{{ instance.custom_name|default:instance.title }}</h4>
+                <span class="badge {% if instance.status == 'draft' %}bg-secondary{% elif instance.status == 'in_progress' %}bg-primary{% elif instance.status == 'waiting' %}bg-warning{% elif instance.status == 'overdue' %}bg-danger{% elif instance.status == 'completed' %}bg-success{% elif instance.status == 'approved' %}bg-info{% elif instance.status == 'rejected' %}bg-danger{% elif instance.status == 'rejected_fixed' %}bg-warning text-dark{% elif instance.status == 'canceled' %}bg-secondary{% else %}bg-secondary{% endif %}">
+                    {{ instance.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body dark_back_color">
+                <!-- ============ نمایش اطلاعات برگشت ============ -->
+                {% if instance.status == 'rejected' %}
+                    <div class="alert alert-danger mb-3">
+                        <h5><i class="bi bi-exclamation-triangle"></i> این فرم برگشت خورده است!</h5>
+                        <p><strong>دلیل برگشت:</strong> {{ instance.rejection_reason|default:"دلیل ثبت نشده" }}</p>
+                        <p><strong>برگشت‌دهنده:</strong>
+                            {% if instance.rejected_by %}
+                                {{ instance.rejected_by.get_full_name|default:instance.rejected_by.username }}
+                            {% else %}
+                                <span class="text-muted">نامشخص</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>تاریخ برگشت:</strong>
+                            {% if instance.rejected_at %}
+                                {{ instance.rejected_at|date:"Y/m/d H:i" }}
+                            {% else %}
+                                <span class="text-muted">نامشخص</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>سطح برگشت:</strong>
+                            {% if instance.rejection_level == 'field' %}
+                                <span class="badge bg-warning">سطح فیلد</span>
+                            {% elif instance.rejection_level == 'step' %}
+                                <span class="badge bg-warning">سطح مرحله</span>
+                            {% elif instance.rejection_level == 'form' %}
+                                <span class="badge bg-warning">سطح کل فرم</span>
+                            {% else %}
+                                <span class="badge bg-secondary">نامشخص</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>تعداد کل برگشت‌ها:</strong> <span class="badge bg-danger">{{ instance.total_rejections|default:"0" }}</span></p>
+                    </div>
+                {% endif %}
+
+                {% if instance.status == 'rejected_fixed' %}
+                    <div class="alert alert-warning mb-3">
+                        <h5><i class="bi bi-arrow-counterclockwise"></i> این فرم اصلاح شده و دوباره برای بررسی ارسال شده است</h5>
+                        <p>منتظر بررسی توسط
+                            {% if instance.rejected_by %}
+                                {{ instance.rejected_by.get_full_name|default:instance.rejected_by.username }}
+                            {% else %}
+                                بررسی‌کننده
+                            {% endif %}
+                            هستید.
+                        </p>
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>فرم اصلی:</strong> {{ instance.original_template.title|default:"-" }}</p>
+                        <p><strong>مرحله فعلی:</strong>
+                            <span class="badge bg-primary">{{ instance.current_step_number }}</span>
+                            از {{ instance.get_max_step }}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>ایجاد شده توسط:</strong> {{ instance.created_by.get_full_name|default:instance.created_by.username }}</p>
+                        <p><strong>تاریخ شروع:</strong> {{ instance.started_at|date:"Y/m/d H:i" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>مهلت کل فرم:</strong>
+                            {% if instance.deadline_hours == 0 %}
+                                <span class="text-success">بدون محدودیت زمانی</span>
+                            {% else %}
+                                <span class="badge bg-primary">{{ instance.deadline_hours }} ساعت</span>
+                                (معادل {{ instance.deadline_hours|div:24|floatformat:1 }} روز)
+                                {% if instance.is_overdue %}
+                                    <span class="badge bg-danger">⚠️ تاخیر</span>
+                                {% else %}
+                                    <span class="badge bg-success">✅ در زمان</span>
+                                {% endif %}
+                            {% endif %}
+                        </p>
+                        <p><strong>زمان باقی‌مانده:</strong>
+                            <span class="badge {% if instance.get_deadline_status.class == 'danger' %}bg-danger{% elif instance.get_deadline_status.class == 'warning' %}bg-warning{% else %}bg-info{% endif %}">
+                                {{ instance.get_remaining_time_display }}
+                            </span>
+                        </p>
+                        {% if instance.completed_at %}
+                            <p><strong>تاریخ تکمیل:</strong> {{ instance.completed_at|date:"Y/m/d H:i" }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- ============ نوار پیشرفت ============ -->
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between">
+                        <span>پیشرفت کلی:</span>
+                        <span>{{ instance.get_progress_percentage }}%</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success"
+                             style="width: {{ instance.get_progress_percentage }}%;">
+                            {{ instance.get_progress_percentage }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ نمایش مراحل ============ -->
+        <div class="card mb-3">
+            <div class="card-header dark_back_color">
+                <h5>📊 مراحل فرم</h5>
+            </div>
+            <div class="card-body dark_back_color">
+                <div class="row">
+                    {% for step_num, step_data in step_info.items %}
+                        <div class="col-md-3 mb-2">
+                            <div class="card {% if step_num == instance.current_step_number %}border-primary{% endif %}">
+                                <div class="card-header {% if step_num == instance.current_step_number %}bg-primary text-white{% endif %}">
+                                    <strong>مرحله {{ step_num }}</strong>
+                                    <span class="badge bg-light text-dark float-end">{{ step_data.count }} فیلد</span>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>مهلت:</strong>
+                                        {% if step_data.deadline_hours == 0 %}
+                                            <span class="text-success">بدون محدودیت</span>
+                                        {% else %}
+                                            {{ step_data.deadline_hours|floatformat:1 }} ساعت
+                                        {% endif %}
+                                    </p>
+                                    <p>
+                                        <strong>وضعیت:</strong>
+                                        {% if step_data.is_completed %}
+                                            <span class="badge bg-success">✅ تکمیل</span>
+                                        {% elif step_num == instance.current_step_number %}
+                                            <span class="badge bg-warning">⏳ در حال انجام</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">⏸️ شروع نشده</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if step_data.was_overdue %}
+                                        <p><span class="badge bg-danger">⚠️ تاخیر داشته</span></p>
+                                    {% endif %}
+                                    {% if step_data.duration_hours > 0 %}
+                                        <small class="text-muted">مدت زمان: {{ step_data.duration_hours|format_duration }}</small>
+                                    {% endif %}
+                                    {% if step_data.completed_by %}
+                                        <small class="text-muted d-block">تکمیل توسط: {{ step_data.completed_by }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">هیچ مرحله‌ای تعریف نشده است</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ تاریخچه مراحل ============ -->
+        <div class="card mb-3">
+            <div class="card-header dark_back_color">
+                <h5>📋 تاریخچه تکمیل مراحل</h5>
+            </div>
+            <div class="card-body dark_back_color">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>مرحله</th>
+                                <th>تکمیل شده توسط</th>
+                                <th>زمان شروع</th>
+                                <th>زمان تکمیل</th>
+                                <th>مدت زمان</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for step in step_history %}
+                                <tr>
+                                    <td><strong>مرحله {{ step.step_number }}</strong></td>
+                                    <td>{{ step.completed_by_name|default:"-" }}</td>
+                                    <td>{{ step.started_at|persian_date }}</td>
+                                    <td>{{ step.completed_at|persian_date|default:"در حال انجام" }}</td>
+                                    <td>{{ step.duration_hours|format_duration }}</td>
+                                    <td>
+                                        {% if step.was_overdue %}
+                                            <span class="badge bg-danger">⚠️ تاخیر</span>
+                                        {% elif step.is_active %}
+                                            <span class="badge bg-warning">⏳ در حال انجام</span>
+                                        {% elif step.completed_at %}
+                                            <span class="badge bg-success">✅ تکمیل</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">⏸️ شروع نشده</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="6" class="text-center">هیچ مرحله‌ای تکمیل نشده</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ تاریخچه برگشت‌ها ============ -->
+        {% if instance.rejections.exists %}
+        <div class="card mb-3 border-danger">
+            <div class="card-header bg-danger text-white dark_back_color">
+                <h5>🔄 تاریخچه برگشت‌ها ({{ instance.rejections.count }})</h5>
+            </div>
+            <div class="card-body dark_back_color">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>سطح</th>
+                                <th>دلیل</th>
+                                <th>برگشت‌دهنده</th>
+                                <th>مسئول اصلاح</th>
+                                <th>وضعیت</th>
+                                <th>تاریخ</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rejection in instance.rejections.all %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">
+                                            {{ rejection.get_level_display }}
+                                        </span>
+                                        <br>
+                                        <small>{{ rejection.get_target_display }}</small>
+                                    </td>
+                                    <td>{{ rejection.reason|truncatechars:30 }}</td>
+                                    <td>{{ rejection.rejected_by.get_full_name|default:rejection.rejected_by.username }}</td>
+                                    <td>{{ rejection.assigned_to.get_full_name|default:rejection.assigned_to.username }}</td>
+                                    <td>
+                                        <span class="badge {% if rejection.status == 'pending' %}bg-warning{% elif rejection.status == 'responded' %}bg-info{% elif rejection.status == 'fixed' %}bg-success{% elif rejection.status == 'rejected_again' %}bg-danger{% elif rejection.status == 'approved' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ rejection.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ rejection.created_at|date:"Y/m/d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'form_review:review_history' instance.id %}" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'form_review:review_history' instance.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-clock-history"></i> مشاهده تاریخچه کامل
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ============ مقادیر فیلدها ============ -->
+        <div class="card mb-3">
+            <div class="card-header dark_back_color">
+                <h5>✏️ مقادیر فیلدها</h5>
+            </div>
+            <div class="card-body dark_back_color">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>مرحله</th>
+                                <th>فیلد</th>
+                                <th>مقدار</th>
+                                <th>پر شده توسط</th>
+                                <th>زمان</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fv in field_values %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">مرحله {{ fv.instance_field.step_number }}</span>
+                                    </td>
+                                    <td>{{ fv.instance_field.field_title }}</td>
+                                    <td>
+                                        {% if fv.file_value %}
+                                            <a href="{{ fv.file_value.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-download"></i> دانلود فایل
+                                            </a>
+                                        {% elif fv.image_value %}
+                                            <img src="{{ fv.image_value.url }}" style="max-width:100px; max-height:100px; border-radius:5px;">
+                                            <br>
+                                            <a href="{{ fv.image_value.url }}" target="_blank" class="btn btn-sm btn-outline-info mt-1">
+                                                <i class="bi bi-eye"></i> مشاهده
+                                            </a>
+                                        {% else %}
+                                            {{ fv.value|default:"-" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ fv.filled_by.get_full_name|default:"-" }}</td>
+                                    <td>{{ fv.filled_at|date:"Y/m/d H:i" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="5" class="text-center">هنوز مقداری ثبت نشده</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ دکمه‌ها ============ -->
+        <div class="mt-3">
+            <div class="btn-group flex-wrap">
+                {% if instance.status == 'draft' %}
+                    <a href="{% url 'form_flow:edit_instance_fields' instance.id %}" class="btn btn-warning">
+                        <i class="bi bi-pencil-square"></i> ویرایش فرم
+                    </a>
+                {% endif %}
+
+                {% if instance.status != 'completed' and instance.status != 'approved' and instance.status != 'rejected' and instance.status != 'canceled' and instance.status != 'rejected_fixed' %}
+                    <a href="{% url 'form_flow:fill_form' instance.id %}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> ادامه تکمیل
+                    </a>
+                {% endif %}
+
+                <!-- ============ دکمه اصلاح فرم برگشتی ============ -->
+                {% if instance.status == 'rejected' %}
+                    {% for rejection in instance.rejections.all %}
+                        {% if rejection.assigned_to == this_user and rejection.status == 'pending' %}
+                            <a href="{% url 'form_review:fix_rejected_form' rejection.id %}" class="btn btn-warning">
+                                <i class="bi bi-arrow-counterclockwise"></i> اصلاح فرم برگشتی
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                <!-- ============ دکمه برگشت فرم ============ -->
+                {% if instance.status != 'approved' and instance.status != 'canceled' and instance.status != 'draft' %}
+                    {% if can_reject %}
+                        <a href="{% url 'form_review:reject_form' instance.id %}" class="btn btn-danger">
+                            <i class="bi bi-x-circle"></i> برگشت فرم
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+                <a href="{% url 'form_flow:form_history' instance.id %}" class="btn btn-info">
+                    <i class="bi bi-clock-history"></i> تاریخچه کامل
+                </a>
+
+                <a href="{% url 'form_flow:form_pdf' instance.id %}" class="btn btn-danger" target="_blank">
+                    <i class="bi bi-file-pdf"></i> خروجی PDF
+                </a>
+
+                <!-- ============ دکمه‌های تایید/رد ============ -->
+                {% if instance.status == 'completed' %}
+                    {% if can_approve %}
+                        <a href="{% url 'form_flow:approve_form' instance.id %}" class="btn btn-success"
+                           onclick="return confirm('آیا از تایید نهایی این فرم مطمئن هستید؟')">
+                            <i class="bi bi-check-circle"></i> تایید نهایی
+                        </a>
+                        <a href="{% url 'form_review:reject_form' instance.id %}" class="btn btn-danger">
+                            <i class="bi bi-x-circle"></i> برگشت
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+                <!-- ============ دکمه‌های تایید برای فرم‌های اصلاح شده ============ -->
+                {% if instance.status == 'rejected_fixed' %}
+                    {% if can_approve %}
+                        <a href="{% url 'form_flow:approve_form' instance.id %}" class="btn btn-success"
+                           onclick="return confirm('آیا از تایید این فرم مطمئن هستید؟')">
+                            <i class="bi bi-check-circle"></i> تایید نهایی
+                        </a>
+                        <a href="{% url 'form_review:reject_form' instance.id %}" class="btn btn-danger">
+                            <i class="bi bi-x-circle"></i> برگشت مجدد
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+                {% if instance.status == 'draft' %}
+                    <a href="{% url 'form_flow:delete_form' instance.id %}" class="btn btn-danger"
+                       onclick="return confirm('آیا از حذف این فرم مطمئن هستید؟')">
+                        <i class="bi bi-trash"></i> حذف
+                    </a>
+                {% endif %}
+
+                {% if instance.status != 'completed' and instance.status != 'approved' and instance.status != 'rejected' and instance.status != 'canceled' and instance.status != 'rejected_fixed' %}
+                    <a href="{% url 'form_flow:cancel_form' instance.id %}" class="btn btn-secondary"
+                       onclick="return confirm('آیا از لغو این فرم مطمئن هستید؟')">
+                        <i class="bi bi-x-circle"></i> لغو
+                    </a>
+                {% endif %}
+
+                <a href="{% url 'form_flow:my_forms' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> بازگشت
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============ استایل اضافی ============ -->
+<style>
+    .btn-group {
+        gap: 5px;
+    }
+    .btn-group .btn {
+        border-radius: 5px !important;
+    }
+    .card-header.bg-primary {
+        background-color: #0d6efd !important;
+    }
+    .border-primary {
+        border: 2px solid #0d6efd !important;
+    }
+</style>
+
+{% endblock %}

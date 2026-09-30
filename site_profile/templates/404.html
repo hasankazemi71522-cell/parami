@@ -1,0 +1,90 @@
+<!-- templates/404.html -->
+
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="error-page-wrapper dark_back_color">
+    <div class="container dark_back_color">
+        <div class="row justify-content-center dark_back_color">
+            <div class="col-md-8 col-lg-6 dark_back_color">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                    <div class="card-body text-center p-5 dark_back_color">
+                        <!-- تصویر یا آیکون خطا -->
+                        <div class="error-icon mb-4">
+                            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 80px;"></i>
+                        </div>
+
+                        <h1 class="display-1 fw-bold text-primary" style="font-size: 100px;">404</h1>
+                        <h2 class="mb-3">صفحه‌ای که به دنبال آن هستید پیدا نشد!</h2>
+                        <p class="text-muted mb-4">
+                            متأسفیم، صفحه‌ای که درخواست کرده‌اید وجود ندارد یا دسترسی شما به این صفحه مسدود است.
+                            لطفاً آدرس را بررسی کنید یا به صفحه اصلی بازگردید.
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-3 justify-content-center">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="fas fa-arrow-right"></i> بازگشت به صفحه قبل
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-page-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        background: #f8f9fa;
+    }
+    .card {
+        transition: all 0.3s ease;
+        background: #ffffff !important;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12) !important;
+    }
+    .display-1 {
+        font-size: 100px;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .error-icon i {
+        animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    .btn-lg {
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 50px;
+    }
+    .row.g-2 a {
+        display: block;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        color: #495057;
+    }
+    .row.g-2 a:hover {
+        background-color: #f1f3f5;
+        color: #0d6efd;
+    }
+    hr {
+        opacity: 0.1;
+    }
+</style>
+{% endblock %}

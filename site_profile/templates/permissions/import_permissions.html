@@ -1,0 +1,53 @@
+<!-- templates/permissions/import_permissions.html -->
+
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">ورود</span>
+        <span>مجوزها از Excel</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box">
+    <div class="container-fluid">
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <p class="text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    فایل Excel با ستون‌های زیر را آپلود کنید:
+                </p>
+                <ul>
+                    <li><strong>گروه</strong> (اختیاری)</li>
+                    <li><strong>نام مجوز</strong> (الزامی)</li>
+                    <li><strong>کد مجوز</strong> (الزامی - باید یکتا باشد)</li>
+                    <li><strong>توضیحات</strong> (اختیاری)</li>
+                </ul>
+                <p>
+                    <a href="{% url 'site_profile:download_permissions_template' %}" class="btn btn-info btn-sm">
+                        <i class="bi bi-download"></i> دانلود فایل نمونه
+                    </a>
+                </p>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">فایل Excel</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-upload"></i> بارگذاری و ایجاد مجوزها
+                    </button>
+                    <a href="{% url 'site_profile:permission_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-right"></i> بازگشت
+                    </a>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">لیست</span>
+        <span>فرآیندها</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    <!-- ====== نمایش پیغام‌ها ====== -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ====== دکمه به‌روزرسانی مشتریان فیلتر شده ====== -->
+    <div class="mb-3 text-end">
+        <a href="{% url 'case_management:supervisor_calculate_matches_filtered' %}?{{ request.GET.urlencode }}"
+           class="btn btn-warning"
+           onclick="return confirm('آیا از به‌روزرسانی تطابق‌های مشتریان در لیست فعلی (با اعمال فیلترها) اطمینان دارید؟ این عملیات ممکن است چند ثانیه طول بکشد.');">
+            <i class="fas fa-sync-alt"></i> به‌روزرسانی تطابق‌های مشتریان این لیست
+        </a>
+    </div>
+
+    <!-- فیلترها -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="جستجو..." value="{{ search }}">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">همه وضعیت‌ها</option>
+                {% for code, label in process_statuses %}
+                <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="expert" class="form-select" onchange="this.form.submit()">
+                <option value="">همه کارشناسان</option>
+                {% for expert in experts %}
+                <option value="{{ expert.id }}" {% if expert_filter == expert.id|stringformat:'s' %}selected{% endif %}>
+                    {{ expert.get_full_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="date_from" class="form-control" placeholder="از تاریخ" value="{{ date_from }}">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="date_to" class="form-control" placeholder="تا تاریخ" value="{{ date_to }}">
+        </div>
+        <div class="col-md-1">
+            <a href="{% url 'case_management:supervisor_process_list' %}" class="btn btn-secondary w-100">
+                <i class="fas fa-times"></i>
+            </a>
+        </div>
+    </form>
+
+    <!-- جدول -->
+    <div class="table-responsive">
+        <table class="table table-hover table-striped text-center align-middle">
+            <thead>
+                <tr>
+                    <th>مشتری</th>
+                    <th>کارشناس</th>
+                    <th>وضعیت</th>
+                    <th>فایل‌های مناسب</th>  <!-- ✅ ستون جدید -->
+                    <th>زمان انتساب</th>
+                    <th>مهلت تماس</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in processes %}
+                <tr>
+                    <td>
+                        <strong>{{ process.customer.full_name }}</strong>
+                        <br><small class="text-muted">{{ process.customer.mobile }}</small>
+                    </td>
+                    <td>{{ process.expert.get_full_name }}</td>
+                    <td>
+                        <span class="badge
+                            {% if process.status == 'assigned' %}bg-secondary
+                            {% elif process.status == 'contacted' %}bg-success
+                            {% elif process.status == 'introduced' %}bg-info
+                            {% elif process.status == 'visit_pending' %}bg-warning text-dark
+                            {% elif process.status == 'visit_scheduled' %}bg-primary
+                            {% elif process.status == 'visit_done' %}bg-info
+                            {% elif process.status == 'negotiation' %}bg-success
+                            {% elif process.status == 'closed_success' %}bg-success
+                            {% elif process.status == 'closed_fail' %}bg-danger
+                            {% elif process.status == 'cancelled' %}bg-secondary
+                            {% else %}bg-dark{% endif %}">
+                            {{ process.get_status_display }}
+                        </span>
+                        {% if process.is_contact_deadline_passed and process.status == 'assigned' %}
+                            <span class="badge bg-danger">مهلت گذشته</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if process.pending_intro_count > 0 %}
+                            <span class="badge bg-primary rounded-pill">{{ process.pending_intro_count }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">۰</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ process.assigned_at_shamsi }}</td>
+                    <td>
+                        {% if process.contact_deadline %}
+                            {{ process.contact_deadline_shamsi }}
+                            {% if process.is_contact_deadline_passed %}
+                                <span class="badge bg-danger">گذشته</span>
+                            {% endif %}
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'case_management:supervisor_process_detail' process.id %}"
+                               class="btn btn-sm btn-info" title="مشاهده جزئیات">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'case_management:supervisor_calculate_matches_for_customer' process.customer.id %}"
+                               class="btn btn-sm btn-warning" title="به‌روزرسانی تطابق‌های این مشتری"
+                               onclick="return confirm('تطابق‌های مشتری {{ process.customer.full_name }} به‌روزرسانی شود؟');">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-4">هیچ فرآیندی یافت نشد</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% include 'shared_index/_pagination.html' with page_obj=processes %}
+</div>
+
+<style>
+    .table td { vertical-align: middle; }
+    .table th { vertical-align: middle; }
+    .badge { font-size: 0.85rem; }
+    .btn-group .btn { margin: 0 2px; }
+    .slider-parent { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .btn-warning { color: #212529; }
+    .btn-warning:hover { background-color: #e0a800; border-color: #d39e00; }
+</style>
+
+{% endblock %}

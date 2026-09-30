@@ -1,0 +1,1082 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">جزئیات</span>
+        <span>مشتری</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+    <!-- ====== هدر ====== -->
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="mb-1">
+                {% if "contact_information_show" in perimissin_list %}
+                    {{ customer.full_name }}
+                {% else %}
+                    عدم دسترسی به اطلاعات تماس
+                {% endif %}
+                <span class="badge bg-secondary ms-2" style="font-size: 0.9rem; direction: ltr; vertical-align: middle;">
+                    <i class="fas fa-hashtag"></i> {{ customer.display_code|default:"-" }}
+                </span>
+            </h3>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-{% if customer.customer_type == 'buyer' %}success{% elif customer.customer_type == 'tenant' %}info{% elif customer.customer_type == 'developer' %}warning{% elif customer.customer_type == 'investor' %}purple{% else %}secondary{% endif %} fs-6">
+                    {{ customer.get_customer_type_display }}
+                </span>
+                <span class="badge bg-{% if customer.status == 'new' %}info{% elif customer.status == 'assigned' %}primary{% elif customer.status == 'in_progress' %}warning{% elif customer.status == 'waiting' %}orange{% elif customer.status == 'matched' %}success{% elif customer.status == 'purchased' or customer.status == 'rented' %}teal{% elif customer.status == 'inactive' %}danger{% else %}secondary{% endif %} fs-6">
+                    {{ customer.get_status_display }}
+                </span>
+                {% if customer.source %}
+                    <span class="badge fs-6" style="background-color: {{ customer.source.color }}; color: white;">
+                        <i class="{{ customer.source.icon }}"></i> {{ customer.source.name }}
+                    </span>
+                {% endif %}
+                <span class="badge bg-{% if customer.is_active %}success{% else %}danger{% endif %} fs-6">
+                    {% if customer.is_active %}فعال{% else %}غیرفعال{% endif %}
+                </span>
+                {% if customer.priority > 0 %}
+                    <span class="badge bg-warning text-dark fs-6">
+                        {% for i in "x"|rjust:customer.priority %}⭐{% endfor %} اولویت {{ customer.priority }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <!-- 🆕 دکمه ثبت مشتری جدید -->
+            <a href="{% url 'estate:customer_create' %}" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> ثبت مشتری جدید
+            </a>
+            <!-- 🆕 دکمه ثبت فایل (ملک) جدید -->
+            <a href="{% url 'estate:property_create' %}" class="btn btn-primary">
+                <i class="fas fa-building"></i> ثبت فایل جدید
+            </a>
+            {% if "customer_edit" in perimissin_list %}
+            <a href="{% url 'estate:customer_edit' customer.id %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> ویرایش
+            </a>
+            {% endif %}
+            {% if customer.is_active %}
+                {% if "customer_delete" in perimissin_list %}
+                    <a href="{% url 'estate:customer_delete' customer.id %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> حذف
+                    </a>
+                {% endif %}
+            {% else %}
+                {% if "customer_restore" in perimissin_list %}
+                    <a href="{% url 'estate:customer_restore' customer.id %}" class="btn btn-success">
+                        <i class="fas fa-undo"></i> بازیابی
+                    </a>
+                {% endif %}
+            {% endif %}
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+    </div>
+
+    <!-- ====== اطلاعات تماس ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body dark_back_color">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="fas fa-phone text-primary"></i> شماره موبایل
+                    </h6>
+                    <p class="card-text fs-5 fw-bold" dir="ltr">
+                        {% if "contact_information_show" in perimissin_list %}
+                            {{ customer.mobile|default:"-" }}
+                        {% else %}
+                            عدم دسترسی به شماره تماس
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body dark_back_color">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="fas fa-envelope text-primary"></i> ایمیل
+                    </h6>
+                    <p class="card-text fs-5">
+                        {% if customer.email %}
+                            {{ customer.email }}
+                        {% else %}
+                            <span class="text-muted">ثبت نشده</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body dark_back_color">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="fas fa-user-tie text-primary"></i> ثبت‌کننده
+                    </h6>
+                    <p class="card-text fs-5">{{ customer.created_by_name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== اطلاعات تکمیلی (فقط در صورت وجود) ====== -->
+    {% if customer.alternative_phone or customer.home_phone or customer.work_phone or customer.company_name or customer.job_title %}
+    <div class="row g-3 mb-4">
+        {% if customer.alternative_phone %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">تلفن همراه دوم</h6>
+                    <p class="fw-bold" dir="ltr">{{ customer.alternative_phone }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.home_phone %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">تلفن منزل</h6>
+                    <p class="fw-bold" dir="ltr">{{ customer.home_phone }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.work_phone %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">تلفن محل کار</h6>
+                    <p class="fw-bold" dir="ltr">{{ customer.work_phone }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.company_name %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">نام شرکت</h6>
+                    <p class="fw-bold">{{ customer.company_name }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.job_title %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">عنوان شغلی</h6>
+                    <p class="fw-bold">{{ customer.job_title }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ====== بودجه‌ها (شرطی بر اساس نوع مشتری) ====== -->
+    {% if customer.customer_type == 'buyer' or customer.customer_type == 'investor' or customer.customer_type == 'developer' %}
+        {% if customer.budget_min or customer.budget_max %}
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card border-success">
+                    <div class="card-header bg-success bg-opacity-10 dark_back_color">
+                        <h5 class="mb-0 text-success">
+                            <i class="fas fa-money-bill"></i> بودجه خرید
+                        </h5>
+                    </div>
+                    <div class="card-body dark_back_color">
+                        <p class="card-text fs-5">
+                            {{ customer.get_budget_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% if customer.customer_type == 'tenant' %}
+            <div class="col-md-6">
+                <div class="card border-info">
+                    <div class="card-header bg-info bg-opacity-10 dark_back_color">
+                        <h5 class="mb-0 text-info">
+                            <i class="fas fa-home"></i> بودجه اجاره
+                        </h5>
+                    </div>
+                    <div class="card-body dark_back_color">
+                        <p class="card-text fs-5">
+                            {{ customer.get_rent_display }}
+                        </p>
+                        {% if customer.rent_type %}
+                            <small class="text-muted">نوع اجاره: {{ customer.get_rent_type_display }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% endif %}
+
+    {% if customer.customer_type == 'tenant' %}
+        {% if customer.rent_min or customer.rent_max or customer.mortgage_min or customer.mortgage_max %}
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card border-info">
+                    <div class="card-header bg-info bg-opacity-10 dark_back_color">
+                        <h5 class="mb-0 text-info">
+                            <i class="fas fa-home"></i> بودجه اجاره
+                        </h5>
+                    </div>
+                    <div class="card-body dark_back_color">
+                        <p class="card-text fs-5">
+                            {{ customer.get_rent_display }}
+                        </p>
+                        {% if customer.rent_type %}
+                            <small class="text-muted">نوع اجاره: {{ customer.get_rent_type_display }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- ====== انواع کاربری ====== -->
+    {% if customer.primary_usage or preferred_usage_types %}
+    <div class="card border-purple mb-4">
+        <div class="card-header bg-purple bg-opacity-10">
+            <h5 class="mb-0 text-purple">
+                <i class="fas fa-layer-group"></i> انواع کاربری مورد نظر
+            </h5>
+        </div>
+        <div class="card-body dark_back_color">
+            <div class="row">
+                {% if customer.primary_usage %}
+                <div class="col-md-4">
+                    <h6 class="text-muted"><i class="fas fa-star text-warning"></i> کاربری سندی (اصلی)</h6>
+                    <p>
+                        <span class="badge p-2 fs-6" style="background-color: {{ customer.primary_usage.color|default:'#6c757d' }}; color: white;">
+                            <i class="fas {{ customer.primary_usage.icon|default:'fa-tag' }}"></i>
+                            {{ customer.primary_usage.name }}
+                        </span>
+                        {% if customer.primary_usage.description %}
+                            <span class="ms-1 text-muted" data-bs-toggle="tooltip" title="{{ customer.primary_usage.description }}">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+                <div class="col-md-{% if customer.primary_usage %}8{% else %}12{% endif %}">
+                    {% if preferred_usage_types %}
+                        <h6 class="text-muted"><i class="fas fa-tags"></i> کاربردهای فرعی (چندگزینه‌ای)</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for usage in preferred_usage_types %}
+                                <span class="badge p-2 fs-6" style="background-color: {{ usage.color|default:'#6c757d' }}; color: white;">
+                                    <i class="fas {{ usage.icon|default:'fa-tag' }}"></i>
+                                    {{ usage.name }}
+                                    {% if usage.description %}
+                                        <span class="ms-1" data-bs-toggle="tooltip" title="{{ usage.description }}">
+                                            <i class="fas fa-info-circle"></i>
+                                        </span>
+                                    {% endif %}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== مناطق و انواع ملک ====== -->
+    {% if customer.preferred_neighborhoods.exists or customer.preferred_property_types.exists %}
+    <div class="row g-3 mb-4">
+        {% if customer.preferred_neighborhoods.exists %}
+        <div class="col-md-6">
+            <div class="card border-warning">
+                <div class="card-header bg-warning bg-opacity-10 dark_back_color">
+                    <h5 class="mb-0 text-warning">
+                        <i class="fas fa-map-marker-alt"></i> مناطق مورد نظر
+                    </h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <p>{{ customer.get_preferred_areas_display }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_property_types.exists %}
+        <div class="col-md-{% if customer.preferred_neighborhoods.exists %}6{% else %}12{% endif %}">
+            <div class="card border-danger">
+                <div class="card-header bg-danger bg-opacity-10 dark_back_color">
+                    <h5 class="mb-0 text-danger">
+                        <i class="fas fa-building"></i> انواع ملک مورد نظر
+                    </h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <p>{{ customer.get_property_types_display }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ====== نیازهای خاص (بدون special_needs) ====== -->
+    {% if requirements_grouped %}
+    <div class="card border-purple mb-4">
+        <div class="card-header bg-purple bg-opacity-10">
+            <h5 class="mb-0 text-purple">
+                <i class="fas fa-check-circle"></i> نیازهای خاص مورد نظر
+            </h5>
+        </div>
+        <div class="card-body dark_back_color">
+            {% for category, reqs in requirements_grouped.items %}
+                <div class="mb-3">
+                    <h6 class="text-muted">{{ category }}</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for req in reqs %}
+                            <span class="badge bg-primary bg-opacity-10 text-dark p-2">
+                                {% if req.icon %}<i class="{{ req.icon }}"></i> {% endif %}
+                                {{ req.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== مشخصات فنی (فقط در صورت وجود) ====== -->
+    {% if customer.min_area or customer.max_area or customer.min_rooms or customer.max_rooms %}
+    <div class="row g-3 mb-4">
+        {% if customer.min_area %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداقل متراژ</h6>
+                    <p class="fs-5 fw-bold">{{ customer.min_area }} m²</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.max_area %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداکثر متراژ</h6>
+                    <p class="fs-5 fw-bold">{{ customer.max_area }} m²</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.min_rooms %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداقل اتاق</h6>
+                    <p class="fs-5 fw-bold">{{ customer.min_rooms }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.max_rooms %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداکثر اتاق</h6>
+                    <p class="fs-5 fw-bold">{{ customer.max_rooms }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ====== مشخصات فنی پیشرفته ====== -->
+    {% if customer.preferred_min_floor is not None or customer.preferred_max_floor is not None or customer.preferred_min_total_floors is not None or customer.preferred_max_total_floors is not None or customer.preferred_min_units_per_floor is not None or customer.preferred_max_units_per_floor is not None or customer.preferred_dong_min is not None or customer.preferred_dong_max is not None %}
+    <div class="row g-3 mb-4">
+        {% if customer.preferred_min_floor is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداقل طبقه</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_min_floor }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_max_floor is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداکثر طبقه</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_max_floor }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_min_total_floors is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداقل تعداد طبقات ساختمان</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_min_total_floors }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_max_total_floors is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداکثر تعداد طبقات ساختمان</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_max_total_floors }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_min_units_per_floor is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداقل واحد در طبقه</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_min_units_per_floor }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_max_units_per_floor is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداکثر واحد در طبقه</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_max_units_per_floor }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_dong_min is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداقل دانگ (۱ تا ۶)</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_dong_min }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_dong_max is not None %}
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color text-center">
+                    <h6 class="text-muted">حداکثر دانگ (۱ تا ۶)</h6>
+                    <p class="fs-5 fw-bold">{{ customer.preferred_dong_max }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ====== جهت‌ها ====== -->
+    {% if customer.preferred_building_orientations.exists or customer.preferred_unit_orientations.exists %}
+    <div class="row g-3 mb-4">
+        {% if customer.preferred_building_orientations.exists %}
+        <div class="col-md-6">
+            <div class="card border-info">
+                <div class="card-header bg-info bg-opacity-10 dark_back_color">
+                    <h5 class="mb-0 text-info">
+                        <i class="fas fa-compass"></i> جهت ساختمان مورد نظر
+                    </h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for orientation in customer.preferred_building_orientations.all %}
+                            <span class="badge bg-secondary p-2 fs-6">
+                                {% if orientation.icon %}<i class="{{ orientation.icon }}"></i> {% endif %}
+                                {{ orientation.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if customer.preferred_unit_orientations.exists %}
+        <div class="col-md-6">
+            <div class="card border-info">
+                <div class="card-header bg-info bg-opacity-10 dark_back_color">
+                    <h5 class="mb-0 text-info">
+                        <i class="fas fa-door-open"></i> جهت واحد مورد نظر
+                    </h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for orientation in customer.preferred_unit_orientations.all %}
+                            <span class="badge bg-secondary p-2 fs-6">
+                                {% if orientation.icon %}<i class="{{ orientation.icon }}"></i> {% endif %}
+                                {{ orientation.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ====== وضعیت واحد ====== -->
+    {% if customer.preferred_unit_conditions.exists %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-success">
+                <div class="card-header bg-success bg-opacity-10 dark_back_color">
+                    <h5 class="mb-0 text-success">
+                        <i class="fas fa-couch"></i> وضعیت واحد مورد نظر
+                    </h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for condition in customer.preferred_unit_conditions.all %}
+                            <span class="badge bg-success p-2 fs-6">
+                                {% if condition.icon %}<i class="{{ condition.icon }}"></i> {% endif %}
+                                {{ condition.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== وضعیت سند و پایان کار ====== -->
+    {% if customer.need_completion_certificate or customer.need_document or customer.preferred_document_types.exists or customer.preferred_ownership_document_types.exists %}
+    <div class="card border-warning mb-4">
+        <div class="card-header bg-warning bg-opacity-10 dark_back_color">
+            <h5 class="mb-0 text-warning">
+                <i class="fas fa-file-alt"></i> وضعیت سند و پایان کار مورد نظر
+            </h5>
+        </div>
+        <div class="card-body dark_back_color">
+            {% if customer.need_completion_certificate or customer.need_document %}
+            <div class="row g-3">
+                {% if customer.need_completion_certificate %}
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <span>نیاز به پایان کار:</span>
+                        <span class="badge bg-success">دارد</span>
+                    </div>
+                </div>
+                {% endif %}
+                {% if customer.need_document %}
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-file-signature text-success"></i>
+                        <span>نیاز به سند:</span>
+                        <span class="badge bg-success">دارد</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if customer.preferred_document_types.exists or customer.preferred_ownership_document_types.exists %}
+            <hr>
+            <div class="row g-3">
+                {% if customer.preferred_document_types.exists %}
+                <div class="col-md-6">
+                    <h6 class="text-muted"><i class="fas fa-file"></i> انواع سند مورد نظر</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for doc in customer.preferred_document_types.all %}
+                            <span class="badge bg-secondary p-2 fs-6">{{ doc.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if customer.preferred_ownership_document_types.exists %}
+                <div class="col-md-6">
+                    <h6 class="text-muted"><i class="fas fa-balance-scale"></i> انواع مالکیت سند مورد نظر</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for own_doc in customer.preferred_ownership_document_types.all %}
+                            <span class="badge bg-secondary p-2 fs-6">{{ own_doc.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== توضیحات ====== -->
+    {% if customer.description %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-pen"></i> توضیحات</h5>
+            </div>
+            <div class="card-body dark_back_color">
+                <p>{{ customer.description|linebreaks }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ============================================================ -->
+    <!-- ====== 📝 بخش یادداشت‌ها ====== -->
+    <!-- ============================================================ -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-sticky-note"></i> یادداشت‌ها
+                    <span class="badge bg-dark ms-2">{{ notes|length }}</span>
+                </h5>
+                <button type="button" class="btn btn-sm btn-primary"
+                        onclick="openAddNoteModal('{{ customer.id }}', '{{ customer.full_name }}')"
+                        data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                    <i class="fas fa-plus"></i> افزودن یادداشت
+                </button>
+            </div>
+        </div>
+        <div class="card-body dark_back_color">
+            {% if notes %}
+                <div class="timeline">
+                    {% for note in notes %}
+                        <div class="timeline-item dark_back_color {% if note.is_resolved %}resolved{% endif %}">
+                            <div class="timeline-marker {% if note.priority == 'urgent' %}bg-danger{% elif note.priority == 'high' %}bg-warning{% elif note.priority == 'medium' %}bg-primary{% else %}bg-secondary{% endif %}"></div>
+                            <div class="timeline-content dark_back_color2">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                    <div>
+                                        <h6 class="mb-0">
+                                            <strong>{{ note.title }}</strong>
+                                            <span class="badge ms-2" style="background-color: {{ note.priority_color }};">
+                                                <i class="fas {{ note.priority_icon }}"></i>
+                                                {{ note.get_priority_display }}
+                                            </span>
+                                            <span class="badge bg-info ms-1">{{ note.get_note_type_display }}</span>
+                                            {% if note.is_resolved %}
+                                                <span class="badge bg-success ms-1">
+                                                    <i class="fas fa-check"></i> برطرف شده
+                                                </span>
+                                            {% endif %}
+                                        </h6>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> {{ note.created_at_shamsi }}
+                                        </small>
+                                        {% if not note.is_resolved %}
+                                            <button type="button" class="btn btn-sm btn-success"
+                                                    onclick="resolveNote('{{ note.id }}')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <p class="card-text">{{ note.content|linebreaks }}</p>
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-3 mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user-pen"></i>
+                                        <strong>نویسنده:</strong> {{ note.created_by.get_full_name|default:note.created_by.username|default:'سیستم' }}
+                                    </small>
+                                    {% if note.assigned_to %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-user-tie"></i>
+                                            <strong>اختصاص یافته به:</strong> {{ note.assigned_to.get_full_name|default:note.assigned_to.username }}
+                                        </small>
+                                    {% endif %}
+                                    {% if note.resolved_by %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <strong>برطرف کننده:</strong> {{ note.resolved_by.get_full_name|default:note.resolved_by.username }}
+                                            <span class="ms-1">({{ note.resolved_at_shamsi }})</span>
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-sticky-note fa-3x text-muted mb-3 d-block"></i>
+                    <p class="text-muted mb-0">هیچ یادداشتی برای این مشتری ثبت نشده است.</p>
+                    <button type="button" class="btn btn-sm btn-primary mt-2"
+                            onclick="openAddNoteModal('{{ customer.id }}', '{{ customer.full_name }}')"
+                            data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                        <i class="fas fa-plus"></i> اولین یادداشت را ثبت کنید
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ====== اطلاعات سیستمی ====== -->
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">
+                        <i class="fas fa-hashtag text-primary"></i> کد مشتری
+                    </h6>
+                    <p class="fs-5 fw-bold" dir="ltr">{{ customer.display_code|default:"ثبت نشده" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">تاریخ ایجاد</h6>
+                    <p>{{ customer.created_at_shamsi }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">آخرین بروزرسانی</h6>
+                    <p>{{ customer.updated_at_shamsi }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">سرپرست</h6>
+                    <p>
+                        {% if customer.supervisor %}
+                            <span class="badge bg-primary">
+                                <i class="fas fa-user-tie"></i> {{ customer.supervisor.get_full_name }}
+                            </span><br>
+                            <a href="tel:{{ customer.supervisor.mobile }}">
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-user-tie"></i> {{ customer.supervisor.mobile }}
+                                </span>
+                            </a>
+                        {% else %}
+                            <span class="text-muted">ثبت نشده</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body dark_back_color">
+                    <h6 class="text-muted">کارشناس</h6>
+                    <p>
+                        {% if customer.expert %}
+                            <span class="badge bg-info">
+                                <i class="fas fa-user-check"></i> {{ customer.expert.get_full_name }}
+                            </span>
+                            <br>
+                            <a href="tel:{{ customer.expert.mobile }}">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-user-tie"></i> {{ customer.expert.mobile }}
+                                </span>
+                            </a>
+                        {% else %}
+                            <span class="text-muted">ثبت نشده</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ====== مودال افزودن یادداشت ====== -->
+<!-- ============================================================ -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="fas fa-sticky-note"></i>
+                    <span id="addNoteModalTitle">افزودن یادداشت جدید</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addNoteForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="customer_id" id="noteCustomerId" value="{{ customer.id }}">
+
+                    <div class="alert alert-info">
+                        <strong>مشتری:</strong> <span id="noteCustomerName">{{ customer.full_name }}</span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">عنوان <span class="text-danger">*</span></label>
+                            <input type="text" name="title" id="noteTitle" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">اولویت</label>
+                            <select name="priority" id="notePriority" class="form-select">
+                                <option value="low">کم</option>
+                                <option value="medium" selected>متوسط</option>
+                                <option value="high">بالا</option>
+                                <option value="urgent">فوری</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">نوع یادداشت</label>
+                            <select name="note_type" id="noteType" class="form-select">
+                                <option value="general">یادداشت عمومی</option>
+                                <option value="important">نکته مهم</option>
+                                <option value="warning">هشدار</option>
+                                <option value="review">نظر کارشناسی</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">متن یادداشت <span class="text-danger">*</span></label>
+                        <textarea name="content" id="noteContent" class="form-control" rows="4" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-warning" onclick="submitAddNote()">
+                    <i class="fas fa-save"></i> ثبت یادداشت
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-purple { background-color: #6f42c1; }
+    .border-purple { border-color: #6f42c1 !important; }
+    .text-purple { color: #6f42c1; }
+    .bg-orange { background-color: #fd7e14; }
+    .text-orange { color: #fd7e14; }
+    .bg-teal { background-color: #20c997; }
+    .text-teal { color: #20c997; }
+
+    .badge-usage {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin: 2px;
+        transition: transform 0.2s;
+    }
+    .badge-usage:hover {
+        transform: scale(1.05);
+    }
+
+    /* ====== تایم‌لاین ====== */
+    .timeline {
+        position: relative;
+        padding: 0;
+        list-style: none;
+    }
+    .timeline:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: #e9ecef;
+        left: 20px;
+        margin-left: -1.5px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding-left: 50px;
+    }
+    .timeline-item.resolved {
+        opacity: 0.7;
+    }
+    .timeline-item.resolved .timeline-content {
+        background: #f8f9fa;
+    }
+    .timeline-marker {
+        position: absolute;
+        top: 0;
+        left: 11px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #e9ecef;
+        z-index: 1;
+    }
+    .timeline-content {
+        background: #fff;
+        padding: 15px 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .timeline-content:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .timeline-content p {
+        margin-bottom: 0;
+    }
+    .timeline-content .card-text {
+        white-space: pre-wrap;
+    }
+
+    /* ====== استایل‌های تکمیلی ====== */
+    .card-header.bg-purple.bg-opacity-10 {
+        background-color: rgba(111, 66, 193, 0.1) !important;
+    }
+    .card-header.bg-info.bg-opacity-10 {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+    .card-header.bg-warning.bg-opacity-10 {
+        background-color: rgba(255, 193, 7, 0.1) !important;
+    }
+    .card-header.bg-success.bg-opacity-10 {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+    .dark_back_color .text-muted {
+        color: #6c757d !important;
+    }
+</style>
+
+<script>
+function getCSRFToken() {
+    const cookieValue = document.cookie.match('(^|; )csrftoken=([^;]*)');
+    return cookieValue ? cookieValue[2] : null;
+}
+
+function openAddNoteModal(customerId, customerName) {
+    document.getElementById('noteCustomerId').value = customerId;
+    document.getElementById('noteCustomerName').textContent = customerName;
+    document.getElementById('addNoteModalTitle').textContent = `افزودن یادداشت برای ${customerName}`;
+
+    document.getElementById('noteTitle').value = '';
+    document.getElementById('noteContent').value = '';
+    document.getElementById('notePriority').value = 'medium';
+    document.getElementById('noteType').value = 'general';
+}
+
+function submitAddNote() {
+    const customerId = document.getElementById('noteCustomerId').value;
+    const title = document.getElementById('noteTitle').value;
+    const content = document.getElementById('noteContent').value;
+    const priority = document.getElementById('notePriority').value;
+    const noteType = document.getElementById('noteType').value;
+
+    if (!title || !content) {
+        alert('عنوان و متن یادداشت الزامی است');
+        return;
+    }
+
+    const csrftoken = getCSRFToken();
+    if (!csrftoken) {
+        alert('❌ CSRF Token یافت نشد. لطفاً صفحه را Refresh کنید.');
+        return;
+    }
+
+    const url = `/api/note/customer/${customerId}/`;
+    const params = new URLSearchParams();
+    params.append('title', title);
+    params.append('content', content);
+    params.append('priority', priority);
+    params.append('note_type', noteType);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || `HTTP error! status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert('✅ یادداشت با موفقیت ثبت شد');
+            location.reload();
+        } else {
+            alert('❌ خطا: ' + (data.error || 'مشخص نیست'));
+        }
+    })
+    .catch(error => {
+        console.error('❌ خطا:', error);
+        alert('❌ خطا در ارتباط با سرور:\n' + error.message);
+    });
+}
+
+function resolveNote(noteId) {
+    if (!confirm('آیا از برطرف شدن این یادداشت اطمینان دارید؟')) return;
+
+    const csrftoken = getCSRFToken();
+    if (!csrftoken) {
+        alert('❌ CSRF Token یافت نشد. لطفاً صفحه را Refresh کنید.');
+        return;
+    }
+
+    const url = `/api/note/resolve/${noteId}/`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || `HTTP error! status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert('✅ یادداشت با موفقیت برطرف شد');
+            location.reload();
+        } else {
+            alert('❌ خطا: ' + (data.error || 'مشخص نیست'));
+        }
+    })
+    .catch(error => {
+        console.error('❌ خطا:', error);
+        alert('❌ خطا در ارتباط با سرور:\n' + error.message);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

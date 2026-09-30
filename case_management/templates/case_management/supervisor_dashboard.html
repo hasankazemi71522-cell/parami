@@ -1,0 +1,404 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">داشبورد</span>
+        <span>سرپرست</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    <!-- ====== نمایش پیغام‌ها ====== -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ====== دکمه‌های اقدام سریع ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-8">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'case_management:supervisor_calculate_all_matches' %}"
+                   class="btn btn-warning shadow-sm"
+                   onclick="return confirm('آیا از به‌روزرسانی تطابق‌های همه مشتریان خود اطمینان دارید؟ این عملیات ممکن است چند ثانیه طول بکشد.');">
+                    <i class="fas fa-sync-alt"></i> به‌روزرسانی تطابق‌های همه مشتریان
+                </a>
+                <a href="{% url 'case_management:supervisor_archived_processes' %}"
+                   class="btn btn-secondary shadow-sm">
+                    <i class="fas fa-archive"></i> مشاهده آرشیو فرآیندها
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-danger fs-6 p-2" id="alertCount">
+                <i class="fas fa-bell"></i> {{ unread_alerts }} اخطار خوانده نشده
+            </span>
+        </div>
+    </div>
+
+    <!-- ====== آمار کلی ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ total_processes }}</h3>
+                    <p class="mb-0"><i class="fas fa-folder-open"></i> کل فرآیندها</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ active_processes }}</h3>
+                    <p class="mb-0"><i class="fas fa-spinner"></i> فعال</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-purple text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ contract_pending|default:0 }}</h3>
+                    <p class="mb-0"><i class="fas fa-file-contract"></i> در واحد قرارداد</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ in_accounting|default:0 }}</h3>
+                    <p class="mb-0"><i class="fas fa-calculator"></i> در حسابداری</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== آمار تکمیلی ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ closed_success }}</h3>
+                    <p class="mb-0"><i class="fas fa-check-circle"></i> موفق</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ closed_fail|default:0 }}</h3>
+                    <p class="mb-0"><i class="fas fa-times-circle"></i> ناموفق</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <h3>{{ unread_alerts }}</h3>
+                    <p class="mb-0"><i class="fas fa-bell"></i> اخطار خوانده نشده</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== کارشناسان زیرمجموعه با ستون‌های جدید ====== -->
+    <h5 class="mb-3 text-center"><i class="fas fa-users"></i> کارشناسان زیرمجموعه</h5>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>نام کارشناس</th>
+                    <th>کل فرآیندها</th>
+                    <th>فعال</th>
+                    <th>موفق</th>
+                    <th>در انتظار تماس</th>
+                    <th>فایل‌های معرفی‌نشده</th>
+                    <th>ظرفیت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in expert_stats %}
+                <tr>
+                    <td>
+                        <strong>{{ stat.expert.get_full_name }}</strong>
+                        <br><small class="text-muted">{{ stat.expert.mobile }}</small>
+                    </td>
+                    <td>{{ stat.total }}</td>
+                    <td><span class="badge bg-success">{{ stat.active }}</span></td>
+                    <td><span class="badge bg-info">{{ stat.success }}</span></td>
+                    <td><span class="badge bg-warning text-dark">{{ stat.contact_pending }}</span></td>
+                    <td>
+                        {% if stat.pending_intro_count > 0 %}
+                            <span class="badge bg-primary rounded-pill">{{ stat.pending_intro_count }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">۰</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if stat.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ stat.active }}/{{ stat.max_capacity }}
+                            {% if stat.is_available %}
+                                <i class="fas fa-check-circle"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle"></i>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'case_management:supervisor_process_list' %}?expert={{ stat.expert.id }}"
+                               class="btn btn-sm btn-primary" title="مشاهده فرآیندهای این کارشناس">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'case_management:supervisor_archived_processes' %}?expert={{ stat.expert.id }}"
+                               class="btn btn-sm btn-secondary" title="مشاهده آرشیو این کارشناس">
+                                <i class="fas fa-archive"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center py-3">هیچ کارشناسی یافت نشد</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- 📋 مشتریان بدون کارشناس                                      -->
+    <!-- ========================================================== -->
+    <h5 class="mt-4 mb-3 text-center"><i class="fas fa-user-plus text-danger"></i> مشتریان بدون کارشناس</h5>
+    {% if customers_without_expert %}
+    <div class="table-responsive">
+        <table class="table table-hover table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>مشتری</th>
+                    <th>موبایل</th>
+                    <th>نوع</th>
+                    <th>اختصاص کارشناس</th>
+                    <th>جزئیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers_without_expert %}
+                <tr>
+                    <td>
+                        <strong>{{ customer.full_name }}</strong>
+                        <br><small class="text-muted">{{ customer.get_customer_type_display }}</small>
+                    </td>
+                    <td dir="ltr">{{ customer.mobile }}</td>
+                    <td><span class="badge bg-info">{{ customer.get_customer_type_display }}</span></td>
+                    <td>
+                        <form method="post" action="{% url 'case_management:assign_expert_to_customer' %}" class="d-flex justify-content-center gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                            <select name="expert_id" class="form-select form-select-sm" style="width: auto;" required>
+                                <option value="">انتخاب کنید</option>
+                                {% for expert in experts %}
+                                <option value="{{ expert.id }}">
+                                    {{ expert.get_full_name }}
+                                    {% if expert.is_available %}(در دسترس){% else %}(تکمیل ظرفیت){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="fas fa-check"></i> ذخیره
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'estate:customer_detail' customer.id %}" class="btn btn-sm btn-info" target="_blank">
+                                <i class="fas fa-user-circle"></i>
+                            </a>
+                            <a href="{% url 'case_management:supervisor_calculate_matches_for_customer' customer.id %}"
+                               class="btn btn-sm btn-warning"
+                               title="به‌روزرسانی تطابق‌های این مشتری"
+                               onclick="return confirm('تطابق‌های مشتری {{ customer.full_name }} به‌روزرسانی شود؟');">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">✅ همه مشتریان شما کارشناس دارند.</div>
+    {% endif %}
+
+    <!-- ========================================================== -->
+    <!-- 📋 مشتریان با کارشناس (قابل ویرایش)                         -->
+    <!-- ========================================================== -->
+    <h5 class="mt-4 mb-3 text-center"><i class="fas fa-user-check text-success"></i> مشتریان با کارشناس</h5>
+    {% if customers_with_expert %}
+    <div class="table-responsive">
+        <table class="table table-hover table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>مشتری</th>
+                    <th>موبایل</th>
+                    <th>نوع</th>
+                    <th>کارشناس فعلی</th>
+                    <th>تغییر کارشناس</th>
+                    <th>جزئیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers_with_expert %}
+                <tr>
+                    <td>
+                        <strong>{{ customer.full_name }}</strong>
+                        <br><small class="text-muted">{{ customer.get_customer_type_display }}</small>
+                    </td>
+                    <td dir="ltr">{{ customer.mobile }}</td>
+                    <td><span class="badge bg-info">{{ customer.get_customer_type_display }}</span></td>
+                    <td>
+                        <span class="badge bg-primary">{{ customer.expert.get_full_name }}</span>
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'case_management:assign_expert_to_customer' %}" class="d-flex justify-content-center gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                            <select name="expert_id" class="form-select form-select-sm" style="width: auto;" required>
+                                <option value="">تغییر کارشناس</option>
+                                {% for expert in experts %}
+                                <option value="{{ expert.id }}" {% if expert.id == customer.expert.id %}selected{% endif %}>
+                                    {{ expert.get_full_name }}
+                                    {% if expert.is_available %}(در دسترس){% else %}(تکمیل ظرفیت){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-warning">
+                                <i class="fas fa-sync-alt"></i> تغییر
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'estate:customer_detail' customer.id %}" class="btn btn-sm btn-info" target="_blank">
+                                <i class="fas fa-user-circle"></i>
+                            </a>
+                            <a href="{% url 'case_management:supervisor_calculate_matches_for_customer' customer.id %}"
+                               class="btn btn-sm btn-warning"
+                               title="به‌روزرسانی تطابق‌های این مشتری"
+                               onclick="return confirm('تطابق‌های مشتری {{ customer.full_name }} به‌روزرسانی شود؟');">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-secondary text-center">هیچ مشتری با کارشناس یافت نشد.</div>
+    {% endif %}
+
+    <!-- ====== اخطارهای اخیر ====== -->
+    <h5 class="mt-4 mb-3 text-center"><i class="fas fa-bell"></i> اخطارهای اخیر</h5>
+    <div class="list-group">
+        {% for alert in recent_alerts %}
+        <div class="list-group-item list-group-item-{% if alert.is_read %}secondary{% else %}warning{% endif %}">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge
+                        {% if alert.alert_type == 'missed_contact' %}bg-danger
+                        {% elif alert.alert_type == 'missed_introduction' %}bg-warning text-dark
+                        {% elif alert.alert_type == 'missed_visit_result' %}bg-danger
+                        {% else %}bg-info{% endif %}">
+                        {{ alert.get_alert_type_display }}
+                    </span>
+                    <strong>{{ alert.message|truncatewords:20 }}</strong>
+                    <br><small class="text-muted">فرآیند: {{ alert.process.customer.full_name }}</small>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted d-block">{{ alert.created_at|show_jalali }}</small>
+                    {% if not alert.is_read %}
+                        <a href="{% url 'case_management:supervisor_process_detail' alert.process.id %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> مشاهده
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-success text-center">✅ هیچ اخطاری وجود ندارد</div>
+        {% endfor %}
+    </div>
+
+    <!-- ====== دکمه‌های پایین ====== -->
+    <div class="mt-4 text-center">
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <a href="{% url 'case_management:supervisor_process_list' %}" class="btn btn-primary">
+                <i class="fas fa-list"></i> مشاهده همه فرآیندها
+            </a>
+            <a href="{% url 'case_management:supervisor_archived_processes' %}" class="btn btn-secondary">
+                <i class="fas fa-archive"></i> مشاهده آرشیو
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- ====== استایل اختصاصی ====== -->
+<style>
+    .table td { vertical-align: middle; }
+    .table th { vertical-align: middle; }
+    .badge { font-size: 0.85rem; }
+    .card { transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn-group .btn { margin: 0 2px; }
+    .slider-parent { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .btn-warning { color: #212529; }
+    .btn-warning:hover { background-color: #e0a800; border-color: #d39e00; }
+    .list-group-item { transition: all 0.3s ease; }
+    .list-group-item:hover { background-color: #f8f9fa; }
+
+    /* رنگ‌های جدید */
+    .bg-purple {
+        background-color: #6f42c1 !important;
+        color: white !important;
+    }
+    .bg-negotiation {
+        background-color: #fd7e14 !important;
+        color: white !important;
+    }
+</style>
+
+<!-- ====== اسکریپت برای به‌روزرسانی آمار اخطارها ====== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function loadUnreadAlerts() {
+        fetch('/api/alerts/unread-count/', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const badge = document.getElementById('alertCount');
+                if (badge) {
+                    badge.textContent = '🔔 ' + data.count + ' اخطار خوانده نشده';
+                    badge.style.display = (data.count > 0) ? 'inline-block' : 'inline-block';
+                }
+            }
+        })
+        .catch(error => console.error('Error loading alerts:', error));
+    }
+    loadUnreadAlerts();
+    setInterval(loadUnreadAlerts, 60000);
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,710 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">مدیریت</span>
+        <span>فایل‌های جدید</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    <!-- ====== آمار ====== -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.pending }}</h5>
+                    <p class="card-text mb-0 small">در انتظار بررسی</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card {% if stats.has_duplicate > 0 %}bg-danger{% else %}bg-success{% endif %} text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.has_duplicate }}</h5>
+                    <p class="card-text mb-0 small">
+                        <i class="fas fa-exclamation-triangle"></i> تکراری
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== فیلترها و جستجو ====== -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control"
+                               placeholder="جستجو بر اساس کد فایل، عنوان، آدرس، مالک..."
+                               value="{{ search }}">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select name="property_type" class="form-select" onchange="this.form.submit()">
+                        <option value="">همه انواع</option>
+                        {% for type in property_types %}
+                            <option value="{{ type.id }}" {% if property_type_filter == type.id|stringformat:'s' %}selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="contract_type" class="form-select" onchange="this.form.submit()">
+                        <option value="">همه قراردادها</option>
+                        <option value="sale" {% if contract_type == 'sale' %}selected{% endif %}>فروش</option>
+                        <option value="rent" {% if contract_type == 'rent' %}selected{% endif %}>اجاره</option>
+                        <option value="both" {% if contract_type == 'both' %}selected{% endif %}>فروش و اجاره</option>
+                        <option value="partnership" {% if contract_type == 'partnership' %}selected{% endif %}>مشارکت</option>
+                        <option value="investment" {% if contract_type == 'investment' %}selected{% endif %}>سرمایه‌گذاری</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="duplicate_filter" class="form-select" onchange="this.form.submit()">
+                        <option value="">همه فایل‌ها</option>
+                        <option value="has_duplicate" {% if duplicate_filter == 'has_duplicate' %}selected{% endif %}>
+                            ⚠️ فایل‌های تکراری
+                        </option>
+                        <option value="no_duplicate" {% if duplicate_filter == 'no_duplicate' %}selected{% endif %}>
+                            ✅ فایل‌های غیر تکراری
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'site_profile:properties_without_supervisor' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-times"></i> پاک کردن
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== لیست فایل‌ها ====== -->
+    <div class="table-responsive">
+        <table class="table table-hover table-striped text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>کد فایل</th>
+                    <th>عنوان</th>
+                    <th>نوع ملک</th>
+                    <th>متراژ</th>
+                    <th>قیمت</th>
+                    <th>وضعیت</th>
+                    <th>کارشناس</th>
+                    <th>وضعیت تکراری</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for property in properties %}
+                <tr>
+                    <td>{{ forloop.counter0|add:properties.start_index }}</td>
+                    <td>
+                        <span class="badge bg-secondary" style="direction: ltr; font-size: 0.8rem;">
+                            <i class="fas fa-hashtag"></i> {{ property.display_code|default:"-" }}
+                        </span>
+                    </td>
+                    <td>
+                        <strong>{{ property.title|default:'بدون عنوان' }}</strong>
+                        <br><small class="text-muted">{{ property.address|truncatechars:30|default:'---' }}</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">
+                            {{ property.property_type.name|default:'---' }}
+                        </span>
+                    </td>
+                    <td>{{ property.area|default:'---' }} متر</td>
+                    <td>
+                        {% if property.contract_type == 'sale' or property.contract_type == 'pre_sale' or property.contract_type == 'both' %}
+                            {{ property.formatted_price|default:'---' }}
+                        {% endif %}
+                        {% if property.contract_type == 'rent' or property.contract_type == 'both' %}
+                            {% if property.rent_price %}
+                                <br><small>اجاره: {{ property.formatted_rent }}</small>
+                            {% endif %}
+                            {% if property.mortgage_price %}
+                                <br><small>رهن: {{ property.formatted_mortgage }}</small>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if property.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">در انتظار</span>
+                        {% elif property.status == 'confirmed' %}
+                            <span class="badge bg-success">تایید شده</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ property.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if property.expert %}
+                            <span class="badge bg-primary">
+                                <i class="fas fa-user-tie"></i>
+                                {{ property.expert.get_full_name }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-user-slash"></i> بدون کارشناس
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if property.duplicate_info.has_duplicate %}
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="badge bg-danger me-2">
+                                    <i class="fas fa-exclamation-triangle"></i> تکراری
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="showPropertyDuplicates('{{ property.id }}')"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#duplicateModal">
+                                    {{ property.duplicate_info.count }} مورد
+                                </button>
+                            </div>
+                        {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check"></i> غیر تکراری
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'estate:property_detail' property.id %}" class="btn btn-info" target="_blank" title="جزئیات">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'estate:property_edit' property.id %}" class="btn btn-primary" target="_blank" title="ویرایش">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-warning"
+                                    onclick="openNoteModal('{{ property.id }}', '{{ property.title|default:'بدون عنوان' }}')"
+                                    data-bs-toggle="modal" data-bs-target="#noteModal" title="یادداشت">
+                                <i class="fas fa-sticky-note"></i>
+                            </button>
+                            <button type="button" class="btn btn-success"
+                                    onclick="confirmProperty('{{ property.id }}', '{{ property.title|default:'بدون عنوان' }}')"
+                                    title="تایید فایل">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger"
+                                    onclick="deleteProperty('{{ property.id }}', '{{ property.title|default:'بدون عنوان' }}')"
+                                    title="حذف فایل">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center py-4">
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-check-circle fa-2x d-block mb-2"></i>
+                            <strong>همه فایل‌ها دارای سرپرست هستند!</strong>
+                            <p class="mb-0">هیچ فایل بدون سرپرستی یافت نشد.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ====== Pagination ====== -->
+    {% if properties.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if properties.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ properties.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if property_type_filter %}&property_type={{ property_type_filter }}{% endif %}{% if contract_type %}&contract_type={{ contract_type }}{% endif %}{% if duplicate_filter %}&duplicate_filter={{ duplicate_filter }}{% endif %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+            {% for num in properties.paginator.page_range %}
+            <li class="page-item {% if properties.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if property_type_filter %}&property_type={{ property_type_filter }}{% endif %}{% if contract_type %}&contract_type={{ contract_type }}{% endif %}{% if duplicate_filter %}&duplicate_filter={{ duplicate_filter }}{% endif %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+            {% if properties.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ properties.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if property_type_filter %}&property_type={{ property_type_filter }}{% endif %}{% if contract_type %}&contract_type={{ contract_type }}{% endif %}{% if duplicate_filter %}&duplicate_filter={{ duplicate_filter }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- ============================================================ -->
+<!-- ====== مودال نمایش فایل‌های تکراری ====== -->
+<!-- ============================================================ -->
+<div class="modal fade" id="duplicateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="duplicateModalTitle">فایل‌های تکراری</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="duplicateModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">در حال بارگذاری...</span>
+                    </div>
+                    <p class="mt-3 text-muted">در حال بارگذاری اطلاعات...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ====== مودال تایید فایل ====== -->
+<!-- ============================================================ -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle"></i> تایید فایل
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'site_profile:confirm_property' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <p class="mb-0">
+                            <strong>فایل:</strong> <span id="confirmPropertyName">---</span>
+                            <input type="hidden" name="property_id" id="confirmPropertyId">
+                        </p>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        با تایید این فایل، وضعیت آن به "تایید شده" تغییر می‌کند و در لیست املاک قابل مشاهده می‌شود.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> تایید فایل
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ====== مودال حذف فایل ====== -->
+<!-- ============================================================ -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash"></i> حذف فایل
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'site_profile:delete_property' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <p class="mb-0">
+                            <strong>فایل:</strong> <span id="deletePropertyName">---</span>
+                            <input type="hidden" name="property_id" id="deletePropertyId">
+                        </p>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>هشدار!</strong>
+                        <p class="mb-0">آیا از حذف این فایل اطمینان دارید؟ این عملیات غیرقابل بازگشت است و فایل به لیست املاک حذف شده منتقل می‌شود.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> حذف فایل
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ====== مودال یادداشت ====== -->
+<!-- ============================================================ -->
+<div class="modal fade" id="noteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="fas fa-sticky-note"></i>
+                    <span id="noteModalTitle">ثبت یادداشت</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="target_id" id="noteTargetId">
+
+                    <div class="alert alert-info">
+                        <strong>فایل:</strong> <span id="noteTargetName">---</span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">عنوان <span class="text-danger">*</span></label>
+                            <input type="text" name="title" id="noteTitle" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">اولویت</label>
+                            <select name="priority" id="notePriority" class="form-select">
+                                <option value="low">کم</option>
+                                <option value="medium" selected>متوسط</option>
+                                <option value="high">بالا</option>
+                                <option value="urgent">فوری</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">نوع یادداشت</label>
+                            <select name="note_type" id="noteType" class="form-select">
+                                <option value="general">یادداشت عمومی</option>
+                                <option value="important">نکته مهم</option>
+                                <option value="warning">هشدار</option>
+                                <option value="review">نظر کارشناسی</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">متن یادداشت <span class="text-danger">*</span></label>
+                        <textarea name="content" id="noteContent" class="form-control" rows="4" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-warning" onclick="submitNote()">
+                    <i class="fas fa-save"></i> ثبت یادداشت
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ====== اسکریپت‌ها ====== -->
+<!-- ============================================================ -->
+<script>
+// ====== تابع دریافت CSRF Token ======
+function getCSRFToken() {
+    const cookieValue = document.cookie.match('(^|; )csrftoken=([^;]*)');
+    return cookieValue ? cookieValue[2] : null;
+}
+
+// ============================================================
+// ====== تایید فایل ======
+// ============================================================
+function confirmProperty(propertyId, propertyName) {
+    document.getElementById('confirmPropertyId').value = propertyId;
+    document.getElementById('confirmPropertyName').textContent = propertyName;
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+
+// ============================================================
+// ====== حذف فایل ======
+// ============================================================
+function deleteProperty(propertyId, propertyName) {
+    document.getElementById('deletePropertyId').value = propertyId;
+    document.getElementById('deletePropertyName').textContent = propertyName;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// ============================================================
+// ====== نمایش فایل‌های تکراری ======
+// ============================================================
+function showPropertyDuplicates(propertyId) {
+    const modalBody = document.getElementById('duplicateModalBody');
+    const modalTitle = document.getElementById('duplicateModalTitle');
+
+    if (!modalBody || !modalTitle) {
+        console.error('❌ المان‌های مودال یافت نشدند!');
+        return;
+    }
+
+    modalBody.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">در حال بارگذاری...</span>
+            </div>
+            <p class="mt-3 text-muted">در حال دریافت اطلاعات فایل‌های تکراری...</p>
+        </div>
+    `;
+
+    fetch(`/estate/api/duplicate-check/property/${propertyId}/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            modalTitle.textContent = 'فایل‌های تکراری';
+            renderPropertyDuplicates(data.data, modalBody);
+        } else {
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    خطا در دریافت اطلاعات: ${data.error || 'مشخص نیست'}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('❌ خطا:', error);
+        modalBody.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                خطا در ارتباط با سرور: ${error.message}
+            </div>
+        `;
+    });
+}
+
+// ====== تابع رندر فایل‌های تکراری ======
+function renderPropertyDuplicates(data, modalBody) {
+    const duplicates = data.duplicates || [];
+
+    if (!duplicates || duplicates.length === 0) {
+        modalBody.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                هیچ فایل تکراری برای این ملک یافت نشد.
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>${duplicates.length} فایل مشابه یافت شد</strong>
+            <p class="mb-0">لطفاً قبل از تایید، این موارد را بررسی کنید.</p>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>کد فایل</th>
+                        <th>عنوان</th>
+                        <th>آدرس</th>
+                        <th>نوع</th>
+                        <th>متراژ</th>
+                        <th>امتیاز</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    duplicates.forEach(dup => {
+        let badgeClass = 'bg-secondary';
+        if (dup.similarity_score >= 70) badgeClass = 'bg-danger';
+        else if (dup.similarity_score >= 50) badgeClass = 'bg-warning text-dark';
+
+        html += `
+            <tr>
+                <td>
+                    <span class="badge bg-secondary" style="direction: ltr; font-size: 0.75rem;">
+                        ${dup.display_code || '---'}
+                    </span>
+                </td>
+                <td>
+                    <strong>${dup.title || 'بدون عنوان'}</strong>
+                    <br><small class="text-muted">ثبت: ${dup.created_at || '---'}</small>
+                </td>
+                <td><small>${dup.address || '---'}</small></td>
+                <td><span class="badge bg-info">${dup.property_type || '---'}</span></td>
+                <td>${dup.area || '---'} متر</td>
+                <td>
+                    <span class="badge ${badgeClass}">${dup.similarity_score || 0}%</span>
+                </td>
+                <td>
+                    <a href="/estate/properties/${dup.id}/" class="btn btn-sm btn-info" target="_blank">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-3">
+            <small class="text-muted">
+                <i class="fas fa-info-circle"></i>
+                امتیاز بالای ۵۰% به معنای تشابه بالا است
+            </small>
+        </div>
+    `;
+
+    modalBody.innerHTML = html;
+}
+
+// ====== باز کردن مودال یادداشت ======
+function openNoteModal(targetId, targetName) {
+    document.getElementById('noteTargetId').value = targetId;
+    document.getElementById('noteTargetName').textContent = targetName;
+    document.getElementById('noteModalTitle').textContent = `ثبت یادداشت برای ${targetName}`;
+
+    document.getElementById('noteTitle').value = '';
+    document.getElementById('noteContent').value = '';
+    document.getElementById('notePriority').value = 'medium';
+    document.getElementById('noteType').value = 'general';
+}
+
+// ====== ارسال یادداشت ======
+function submitNote() {
+    const targetId = document.getElementById('noteTargetId').value;
+    const title = document.getElementById('noteTitle').value;
+    const content = document.getElementById('noteContent').value;
+    const priority = document.getElementById('notePriority').value;
+    const noteType = document.getElementById('noteType').value;
+
+    if (!targetId) {
+        alert('❌ شناسه مورد نظر یافت نشد!');
+        return;
+    }
+
+    if (!title || !content) {
+        alert('عنوان و متن یادداشت الزامی است');
+        return;
+    }
+
+    const csrftoken = getCSRFToken();
+    if (!csrftoken) {
+        alert('❌ CSRF Token یافت نشد. لطفاً صفحه را Refresh کنید.');
+        return;
+    }
+
+    const params = new URLSearchParams();
+    params.append('title', title);
+    params.append('content', content);
+    params.append('priority', priority);
+    params.append('note_type', noteType);
+
+    const url = `/api/note/property/${targetId}/`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || `HTTP error! status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert('✅ یادداشت با موفقیت ثبت شد');
+            location.reload();
+        } else {
+            alert('❌ خطا: ' + (data.error || 'مشخص نیست'));
+        }
+    })
+    .catch(error => {
+        console.error('❌ خطا:', error);
+        alert('❌ خطا در ارتباط با سرور:\n' + error.message);
+    });
+}
+</script>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+    .badge {
+        font-size: 0.85rem;
+    }
+    .modal-body .table td {
+        vertical-align: middle;
+    }
+    .table th {
+        white-space: nowrap;
+    }
+    .card {
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .slider-parent {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .table th {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .table td {
+        font-size: 0.9rem;
+    }
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    .form-select, .form-control {
+        font-size: 0.9rem;
+    }
+    .modal-header {
+        border-bottom: none;
+    }
+    .modal-footer {
+        border-top: none;
+    }
+</style>
+{% endblock %}

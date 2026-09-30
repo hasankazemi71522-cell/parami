@@ -1,0 +1,65 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">اختصاص</span>
+        <span>مشتری به کارشناس</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-plus"></i> فرم اختصاص مشتری</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'case_management:assign_expert_to_customer' %}" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">مشتری <span class="text-danger">*</span></label>
+                            <select name="customer_id" class="form-select" required>
+                                <option value="">--- انتخاب کنید ---</option>
+                                {% for customer in available_customers %}
+                                    <option value="{{ customer.id }}">{{ customer.full_name }} ({{ customer.mobile }}) - {{ customer.get_customer_type_display }}</option>
+                                {% empty %}
+                                    <option value="" disabled>هیچ مشتری قابل انتسابی یافت نشد</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">فقط مشتریانی نمایش داده می‌شوند که فرآیند فعال ندارند.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">کارشناس <span class="text-danger">*</span></label>
+                            <select name="expert_id" class="form-select" required>
+                                <option value="">--- انتخاب کنید ---</option>
+                                {% for expert in experts %}
+                                    <option value="{{ expert.id }}">{{ expert.get_full_name }} ({{ expert.mobile }})</option>
+                                {% empty %}
+                                    <option value="" disabled>هیچ کارشناسی زیرمجموعه شما وجود ندارد</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">اولویت (۰ تا ۱۰)</label>
+                            <input type="number" name="priority" class="form-control" value="0" min="0" max="10">
+                            <small class="text-muted">عدد بالاتر = اولویت بیشتر</small>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'case_management:supervisor_dashboard' %}" class="btn btn-secondary"><i class="fas fa-arrow-right"></i> بازگشت</a>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> اختصاص دهید</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle"></i>
+                <strong>نکته:</strong> پس از اختصاص، کارشناس موظف است ظرف ۲۴ ساعت با مشتری تماس بگیرد. در غیر این صورت اخطار برای شما ارسال می‌شود.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

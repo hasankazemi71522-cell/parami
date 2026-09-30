@@ -1,0 +1,174 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">نت‌های</span>
+        <span>ارسال‌شده به کال سنتر</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    <!-- ====== آمار ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.total }}</h3>
+                    <p class="mb-0"><i class="fas fa-envelope"></i> کل نت‌ها</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.contact_reports }}</h3>
+                    <p class="mb-0"><i class="fas fa-phone"></i> گزارش تماس</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.important }}</h3>
+                    <p class="mb-0"><i class="fas fa-exclamation-triangle"></i> نکات مهم</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== جستجو ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-8">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control" placeholder="جستجو بر اساس نام یا موبایل مشتری..." value="{{ search }}">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-secondary fs-6">کل: {{ stats.total }}</span>
+        </div>
+    </div>
+
+    <!-- ====== لیست نت‌ها ====== -->
+    <div class="list-group">
+        {% for note in notes %}
+        <div class="list-group-item" id="note-{{ note.id }}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div style="flex: 1;">
+                    <!-- تگ‌ها -->
+                    <span class="badge
+                        {% if note.note_type == 'contact_report' %}bg-success
+                        {% elif note.note_type == 'important' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ note.get_note_type_display }}
+                    </span>
+                    <span class="badge bg-info">
+                        <i class="fas fa-user"></i> {{ note.process.customer.full_name }}
+                    </span>
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-phone"></i> {{ note.process.customer.mobile }}
+                    </span>
+                    <span class="badge bg-dark">
+                        کارشناس: {{ note.created_by.get_full_name }}
+                    </span>
+
+                    <!-- متن نت -->
+                    <p class="mb-1 mt-2">{{ note.content }}</p>
+
+                    <!-- اطلاعات زمان و فرآیند -->
+                    <small class="text-muted">
+                        <!-- ✅ تاریخ ثبت - شمسی -->
+                        ثبت شده در: {{ note.created_at_shamsi }} |
+                        وضعیت فرآیند:
+                        <span class="badge
+                            {% if note.process.status == 'assigned' %}bg-secondary
+                            {% elif note.process.status == 'contacted' %}bg-success
+                            {% elif note.process.status == 'introduced' %}bg-info
+                            {% elif note.process.status == 'visit_scheduled' %}bg-primary
+                            {% elif note.process.status == 'closed_success' %}bg-success
+                            {% elif note.process.status == 'closed_fail' %}bg-danger
+                            {% else %}bg-warning text-dark{% endif %}">
+                            {{ note.process.get_status_display }}
+                        </span>
+                    </small>
+                </div>
+
+                <!-- دکمه‌های عملیات -->
+                <div class="d-flex flex-column gap-1" style="min-width: 120px;">
+                    <a href="{% url 'estate:customer_detail' note.process.customer.id %}" target="_blank" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye"></i> مشاهده
+                    </a>
+                    <a href="{% url 'estate:customer_edit' note.process.customer.id %}" target="_blank" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit"></i> ویرایش مشتری
+                    </a>
+                    <a href="{% url 'case_management:supervisor_process_detail' note.process.id %}" target="_blank" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-tasks"></i> مشاهده فرآیند
+                    </a>
+                    <button class="btn btn-sm btn-success" onclick="confirmNote('{{ note.id }}')">
+                        <i class="fas fa-check"></i> تایید (بررسی و اعمال شد)
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-check-circle fa-2x d-block mb-2"></i>
+            <strong>هیچ نتی برای کال سنتر ارسال نشده است</strong>
+            <p class="mb-0">همه نت‌ها بررسی و تایید شده‌اند.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ====== Pagination ====== -->
+    {% include 'shared_index/_pagination.html' with page_obj=notes %}
+
+</div>
+
+<!-- ========================================================== -->
+<!-- ====== اسکریپت تایید نت ====== -->
+<!-- ========================================================== -->
+<script>
+function getCSRFToken() {
+    const cookieValue = document.cookie.match('(^|; )csrftoken=([^;]*)');
+    return cookieValue ? cookieValue[2] : null;
+}
+
+function confirmNote(noteId) {
+    if (!confirm('آیا از تایید این نت اطمینان دارید؟ (بررسی و اعمال شد)')) return;
+    $.ajax({
+        type:'GET',
+        url: '{% url "case_management:callcenter_notes_list" %}',
+        data: {
+            i: "confirmed_note",
+            noteId: noteId,
+        },
+        dataType: "json",
+        success: function (data) {
+            alert(data["msg"])
+            location.reload()
+        },
+    })
+}
+</script>
+
+<style>
+    .list-group-item {
+        transition: all 0.3s ease;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(-5px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .badge {
+        font-size: 0.8rem;
+        margin: 2px 0;
+    }
+    .btn-group-vertical {
+        gap: 4px;
+    }
+</style>
+{% endblock %}

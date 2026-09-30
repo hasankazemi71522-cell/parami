@@ -1,0 +1,1259 @@
+{% extends 'shared_site/_Mainlayout.html' %}
+{% load static %}
+
+{% block Header_ref %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+    /* ============================================================
+       متغیرهای اصلی
+       ============================================================ */
+    :root {
+        --primary: #6C2BD9;
+        --primary-dark: #5A1FB5;
+        --primary-light: #EDE4FF;
+        --secondary: #00D4AA;
+        --secondary-light: #E0FFF7;
+        --gold: #FFD700;
+        --gold-light: #FFF8E0;
+        --glass-bg: rgba(255, 255, 255, 0.04);
+        --glass-border: rgba(255, 255, 255, 0.06);
+        --card-radius: 24px;
+        --transition-smooth: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    [data-bs-theme="dark"] {
+        --glass-bg: rgba(20, 20, 45, 0.2);
+        --glass-border: rgba(255, 255, 255, 0.04);
+    }
+
+    .section-title {
+        font-weight: 800;
+        font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+        margin-bottom: 0.3rem;
+        color: var(--bs-body-color);
+        text-align: center;
+    }
+    .section-title .highlight {
+        background: linear-gradient(135deg, var(--primary), var(--secondary), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% 200%;
+        animation: gradientMove 8s ease-in-out infinite alternate;
+    }
+    .section-subtitle {
+        color: var(--bs-secondary-color);
+        font-size: 0.85rem;
+        max-width: 550px;
+        margin: 0 auto 28px;
+        line-height: 1.7;
+        text-align: center;
+    }
+    .section-divider {
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 4px;
+        margin: 0 auto 12px;
+    }
+    @keyframes gradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* ============================================================
+       1. هیرو (Hero) - کاهش یافته و مرتب
+       ============================================================ */
+    .hero-titan {
+        position: relative;
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        padding: 70px 0 40px;
+        background: linear-gradient(135deg, #0A0A1A 0%, #1A0A3A 40%, #2D1B69 70%, #0A0A1A 100%);
+        border-radius: 0 0 80px 80px;
+        margin-bottom: 30px;
+    }
+    .hero-titan .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(140px);
+        animation: orbFloat 30s ease-in-out infinite alternate;
+        pointer-events: none;
+        opacity: 0.2;
+    }
+    .hero-titan .orb-1 { width: 500px; height: 500px; background: rgba(108, 43, 217, 0.12); top: -200px; right: -120px; }
+    .hero-titan .orb-2 { width: 300px; height: 300px; background: rgba(0, 212, 170, 0.06); bottom: -100px; left: -60px; animation-delay: -10s; }
+    .hero-titan .orb-3 { width: 200px; height: 200px; background: rgba(255, 215, 0, 0.04); top: 30%; right: 25%; animation-delay: -20s; }
+
+    @keyframes orbFloat {
+        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        33% { transform: translate(60px, -40px) scale(1.1) rotate(120deg); }
+        66% { transform: translate(-40px, 30px) scale(0.9) rotate(240deg); }
+        100% { transform: translate(20px, -20px) scale(1.05) rotate(360deg); }
+    }
+
+    .hero-titan .hero-content { position: relative; z-index: 2; }
+    .hero-titan .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 5px 20px;
+        border-radius: 60px;
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 500;
+        margin-bottom: 14px;
+    }
+    .hero-titan .hero-badge .pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #00D4AA;
+        animation: pulseDot 2s ease-in-out infinite;
+        display: inline-block;
+    }
+    @keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(0.6); }
+    }
+
+    .hero-titan h1 {
+        font-size: clamp(2rem, 4.5vw, 3.2rem);
+        font-weight: 800;
+        line-height: 1.1;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+    .hero-titan h1 .highlight {
+        background: linear-gradient(135deg, #6C2BD9, #00D4AA, #FFD700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% 200%;
+        animation: gradientMove 6s ease-in-out infinite alternate;
+    }
+    .hero-titan .hero-desc {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.4);
+        max-width: 420px;
+        line-height: 1.7;
+        margin-bottom: 18px;
+    }
+
+    .hero-titan .hero-cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+    .btn-glow-primary {
+        background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+        color: #fff;
+        border: none;
+        padding: 10px 28px;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: var(--transition-smooth);
+        box-shadow: 0 8px 32px rgba(108, 43, 217, 0.18);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-glow-primary:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 48px rgba(108, 43, 217, 0.3);
+        color: #fff;
+    }
+    .btn-outline-glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255, 255, 255, 0.08);
+        color: #fff;
+        padding: 10px 28px;
+        border-radius: 60px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        transition: var(--transition-smooth);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-outline-glass:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.15);
+        transform: translateY(-3px);
+        color: #fff;
+    }
+
+    .hero-titan .hero-chart-wrap {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        padding: 16px 14px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        max-width: 420px;
+        margin: 0 auto;
+    }
+    .hero-titan .hero-chart-wrap .chart-label {
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-align: center;
+        margin-bottom: 6px;
+    }
+    .hero-titan .hero-chart-wrap .chart-container {
+        height: 120px;
+        position: relative;
+    }
+    .hero-titan .hero-chart-wrap .chart-stats-mini {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .hero-titan .hero-chart-wrap .chart-stats-mini .mini-stat .num {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #00D4AA;
+        display: block;
+        line-height: 1.2;
+    }
+    .hero-titan .hero-chart-wrap .chart-stats-mini .mini-stat .lbl {
+        font-size: 0.5rem;
+        color: rgba(255, 255, 255, 0.2);
+    }
+
+    @media (max-width: 992px) {
+        .hero-titan { min-height: auto; padding: 80px 0 40px; }
+        .hero-titan .hero-chart-wrap { max-width: 100%; }
+    }
+    @media (max-width: 576px) {
+        .hero-titan { border-radius: 0 0 32px 32px; padding: 60px 0 30px; }
+        .hero-titan h1 { font-size: 1.8rem; }
+        .hero-titan .hero-desc { font-size: 0.8rem; }
+        .hero-titan .hero-cta .btn-glow-primary,
+        .hero-titan .hero-cta .btn-outline-glass {
+            width: 100%;
+            justify-content: center;
+            padding: 10px 16px;
+            font-size: 0.75rem;
+        }
+        .hero-titan .hero-chart-wrap { padding: 12px 10px; }
+        .hero-titan .hero-chart-wrap .chart-container { height: 100px; }
+    }
+
+    /* ============================================================
+       2. آمار برتر
+       ============================================================ */
+    .top-stats {
+        padding: 30px 0 20px;
+        background: var(--bs-tertiary-bg);
+    }
+    .top-stat-item {
+        text-align: center;
+        padding: 12px;
+    }
+    .top-stat-item .number {
+        font-size: 2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: block;
+        line-height: 1.2;
+    }
+    .top-stat-item .label {
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color);
+        font-weight: 500;
+    }
+
+    /* ============================================================
+       3. مزایا
+       ============================================================ */
+    .benefits-grid {
+        padding: 50px 0;
+    }
+    .benefit-simple {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        padding: 20px 18px;
+        text-align: center;
+        transition: var(--transition-smooth);
+        height: 100%;
+    }
+    .benefit-simple:hover {
+        transform: translateY(-6px);
+        border-color: rgba(108, 43, 217, 0.08);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+    }
+    .benefit-simple .b-icon {
+        font-size: 1.8rem;
+        color: var(--primary);
+        margin-bottom: 6px;
+        display: block;
+    }
+    .benefit-simple h6 {
+        font-weight: 700;
+        color: var(--bs-body-color);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+    .benefit-simple p {
+        color: var(--bs-secondary-color);
+        font-size: 0.75rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* ============================================================
+       4. مقایسه قبل/بعد (وسط‌چین و کوچک‌تر)
+       ============================================================ */
+    .compare-section {
+        padding: 50px 0;
+        background: var(--bs-tertiary-bg);
+        position: relative;
+    }
+    .compare-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+        opacity: 0.1;
+    }
+    .compare-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        padding: 18px 16px;
+        transition: var(--transition-smooth);
+        height: 100%;
+        text-align: center;
+    }
+    .compare-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(108, 43, 217, 0.08);
+    }
+    .compare-card .compare-icon { font-size: 1.8rem; margin-bottom: 4px; display: block; }
+    .compare-card .compare-title {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--bs-body-color);
+        margin-bottom: 2px;
+    }
+    .compare-card .compare-sub {
+        color: var(--bs-secondary-color);
+        font-size: 0.7rem;
+        margin-bottom: 8px;
+    }
+    .compare-card ul {
+        padding: 0;
+        list-style: none;
+        margin: 0;
+        display: inline-block;
+        text-align: right;
+    }
+    .compare-card ul li {
+        padding: 3px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.72rem;
+        color: var(--bs-secondary-color);
+        border-bottom: 1px solid var(--glass-border);
+        text-align: right;
+    }
+    .compare-card ul li:last-child { border-bottom: none; }
+    .compare-card ul li .icon-check { color: var(--secondary); font-size: 0.8rem; }
+    .compare-card ul li .icon-close { color: #dc3545; font-size: 0.8rem; }
+    .compare-card .compare-badge {
+        display: inline-block;
+        padding: 2px 12px;
+        border-radius: 50px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        margin-top: 6px;
+    }
+    .compare-card .compare-badge.before {
+        background: rgba(220, 53, 69, 0.06);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.04);
+    }
+    .compare-card .compare-badge.after {
+        background: rgba(0, 212, 170, 0.06);
+        color: var(--secondary);
+        border: 1px solid rgba(0, 212, 170, 0.04);
+    }
+
+    /* ============================================================
+       5. فرآیند - تایم‌لاین (وسط‌چین و کوچک‌تر)
+       ============================================================ */
+    .process-timeline {
+        padding: 50px 0;
+    }
+    .timeline-item {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 14px;
+        align-items: flex-start;
+        max-width: 750px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-item .step-dot {
+        min-width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.7rem;
+        box-shadow: 0 4px 20px rgba(108, 43, 217, 0.15);
+        flex-shrink: 0;
+    }
+    .timeline-item .step-dot.done { background: linear-gradient(135deg, var(--secondary), #00b894); }
+    .timeline-item .step-dot.highlight { background: linear-gradient(135deg, var(--gold), #FFA500); }
+    .timeline-item .step-content {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        padding: 12px 16px;
+        flex: 1;
+    }
+    .timeline-item .step-content h6 {
+        font-weight: 700;
+        color: var(--bs-body-color);
+        font-size: 0.82rem;
+        margin-bottom: 2px;
+    }
+    .timeline-item .step-content p {
+        color: var(--bs-secondary-color);
+        font-size: 0.72rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+    .timeline-item .step-content .badge-step {
+        display: inline-block;
+        font-size: 0.5rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 50px;
+        background: rgba(108, 43, 217, 0.06);
+        color: var(--primary);
+        border: 1px solid rgba(108, 43, 217, 0.04);
+        margin-top: 3px;
+    }
+    [data-bs-theme="dark"] .timeline-item .step-content .badge-step {
+        background: rgba(108, 43, 217, 0.08);
+        color: #8B5CF6;
+    }
+
+    /* ============================================================
+       6. قابلیت‌های ویژه
+       ============================================================ */
+    .features-simple {
+        padding: 50px 0;
+        background: var(--bs-tertiary-bg);
+    }
+    .feature-card-sm {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        padding: 20px 18px;
+        transition: var(--transition-smooth);
+        height: 100%;
+        text-align: center;
+    }
+    .feature-card-sm:hover {
+        transform: translateY(-6px);
+        border-color: rgba(108, 43, 217, 0.08);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+    }
+    .feature-card-sm .icon-wrap {
+        font-size: 1.8rem;
+        color: var(--primary);
+        margin-bottom: 6px;
+        display: block;
+    }
+    .feature-card-sm h6 {
+        font-weight: 700;
+        color: var(--bs-body-color);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+    .feature-card-sm p {
+        color: var(--bs-secondary-color);
+        font-size: 0.75rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* ============================================================
+       7. دستاوردها
+       ============================================================ */
+    .achievements-section {
+        padding: 50px 0;
+        background: linear-gradient(135deg, #1A0A3A, #2D1B69);
+        color: #fff;
+        text-align: center;
+        border-radius: 50px 50px 0 0;
+        margin-top: 20px;
+    }
+    .achievements-section .achievement-item .number {
+        font-size: 2.6rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: block;
+        line-height: 1.2;
+    }
+    .achievements-section .achievement-item .label {
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+    }
+    .achievements-section .achievement-item .sub-label {
+        color: rgba(255, 255, 255, 0.12);
+        font-size: 0.6rem;
+    }
+
+    /* ============================================================
+       8. نظرات
+       ============================================================ */
+    .testimonials-section {
+        padding: 50px 0;
+        background: var(--bs-tertiary-bg);
+    }
+    .testimonial-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        padding: 20px 18px;
+        transition: var(--transition-smooth);
+        height: 100%;
+        text-align: center;
+    }
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(108, 43, 217, 0.06);
+    }
+    .testimonial-card .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        margin: 0 auto 8px;
+    }
+    .testimonial-card .quote { font-size: 1.2rem; color: var(--primary); opacity: 0.12; margin-bottom: 2px; }
+    .testimonial-card .text {
+        color: var(--bs-secondary-color);
+        font-size: 0.8rem;
+        line-height: 1.7;
+        font-style: italic;
+    }
+    .testimonial-card .stars { color: #FFD700; letter-spacing: 2px; font-size: 0.75rem; margin-top: 4px; }
+    .testimonial-card .author {
+        font-weight: 700;
+        color: var(--bs-body-color);
+        margin-top: 6px;
+        font-size: 0.8rem;
+    }
+    .testimonial-card .role {
+        color: var(--bs-secondary-color);
+        font-size: 0.65rem;
+    }
+
+    /* ============================================================
+       9. نقش‌ها
+       ============================================================ */
+    .roles-section {
+        padding: 50px 0;
+        background: var(--bs-tertiary-bg);
+    }
+    .role-pill {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 60px;
+        padding: 8px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition-smooth);
+    }
+    .role-pill:hover {
+        border-color: rgba(108, 43, 217, 0.08);
+        transform: translateY(-2px);
+    }
+    .role-pill .role-icon { font-size: 0.9rem; }
+    .role-pill .role-name { font-weight: 600; color: var(--bs-body-color); font-size: 0.75rem; }
+    .role-pill .role-count {
+        background: var(--primary-light);
+        color: var(--primary);
+        font-size: 0.5rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 50px;
+    }
+    [data-bs-theme="dark"] .role-pill .role-count {
+        background: rgba(108, 43, 217, 0.15);
+        color: #8B5CF6;
+    }
+
+    /* ============================================================
+       10. FAQ
+       ============================================================ */
+    .faq-section {
+        padding: 50px 0;
+    }
+    .faq-item {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        transition: var(--transition-smooth);
+        cursor: pointer;
+        max-width: 750px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .faq-item:hover { border-color: rgba(108, 43, 217, 0.06); }
+    .faq-item .faq-question {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        color: var(--bs-body-color);
+        font-size: 0.82rem;
+    }
+    .faq-item .faq-question .icon {
+        transition: transform 0.3s ease;
+        color: var(--primary);
+        font-size: 0.8rem;
+    }
+    .faq-item .faq-answer {
+        color: var(--bs-secondary-color);
+        font-size: 0.75rem;
+        line-height: 1.7;
+        margin-top: 6px;
+        display: none;
+        padding-top: 6px;
+        border-top: 1px solid var(--glass-border);
+    }
+    .faq-item.active .faq-answer { display: block; }
+    .faq-item.active .faq-question .icon { transform: rotate(180deg); }
+
+    /* ============================================================
+       11. CTA
+       ============================================================ */
+    .cta-ultimate {
+        padding: 50px 0 70px;
+        background: linear-gradient(135deg, #0A0A1A, #1A0A3A);
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 20px;
+        color: #fff;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .cta-ultimate .orb-bg {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        pointer-events: none;
+        opacity: 0.1;
+    }
+    .cta-ultimate .orb-bg-1 { width: 400px; height: 400px; background: rgba(108, 43, 217, 0.15); top: -150px; right: -80px; }
+    .cta-ultimate .orb-bg-2 { width: 300px; height: 300px; background: rgba(0, 212, 170, 0.06); bottom: -100px; left: -80px; }
+
+    .cta-ultimate h2 {
+        font-weight: 800;
+        font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 2;
+    }
+    .cta-ultimate p {
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 0.85rem;
+        max-width: 500px;
+        margin: 0 auto 18px;
+        position: relative;
+        z-index: 2;
+    }
+    .btn-cta-ultimate {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #0A0A1A;
+        border: none;
+        padding: 12px 36px;
+        border-radius: 60px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        transition: var(--transition-smooth);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 8px 32px rgba(255, 215, 0, 0.12);
+        position: relative;
+        z-index: 2;
+    }
+    .btn-cta-ultimate:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 48px rgba(255, 215, 0, 0.2);
+        color: #0A0A1A;
+    }
+    .btn-cta-ultimate-glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255, 255, 255, 0.06);
+        color: #fff;
+        padding: 12px 32px;
+        border-radius: 60px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: var(--transition-smooth);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        z-index: 2;
+    }
+    .btn-cta-ultimate-glass:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.12);
+        transform: translateY(-3px);
+        color: #fff;
+    }
+
+    @media (max-width: 992px) {
+        .achievements-section { border-radius: 32px 32px 0 0; }
+        .cta-ultimate { border-radius: 0 0 32px 32px; padding: 40px 20px; }
+    }
+    @media (max-width: 576px) {
+        .achievements-section .achievement-item .number { font-size: 2rem; }
+        .cta-ultimate .btn-cta-ultimate,
+        .cta-ultimate .btn-cta-ultimate-glass { width: 100%; justify-content: center; padding: 12px 20px; font-size: 0.8rem; }
+        .role-pill { width: 100%; justify-content: center; }
+        .timeline-item { flex-direction: column; gap: 10px; align-items: center; text-align: center; }
+        .timeline-item .step-dot { align-self: center; }
+        .compare-card ul { text-align: center !important; }
+        .compare-card ul li { justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="landing-parami" data-aos-easing="ease-in-out" data-aos-duration="700">
+
+    <!-- ============================================================
+    بخش 1: هیرو (Hero)
+    ============================================================ -->
+    <section class="hero-titan">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-7 hero-content">
+                    <div class="hero-badge" data-aos="fade-up" data-aos-delay="50">
+                        <span class="pulse"></span> 🚀 پلتفرم هوشمند مدیریت املاک
+                    </div>
+                    <h1 data-aos="fade-up" data-aos-delay="100">
+                        مدیریت املاک را با <span class="highlight">هوش مصنوعی</span> متحول کنید
+                    </h1>
+                    <p class="hero-desc" data-aos="fade-up" data-aos-delay="150">
+                        پارمی یک سیستم یکپارچه و هوشمند برای مدیریت کامل املاک، مشتریان، قراردادها،
+                        نیروها و فرآیندهای فروش. از ثبت تا پرداخت، همه‌چیز در یک پلتفرم.
+                    </p>
+                    <div class="hero-cta" data-aos="fade-up" data-aos-delay="200">
+                        <a href="#demo" class="btn-glow-primary"><i class="bi bi-play-circle"></i> درخواست دمو</a>
+                        <a href="#journey" class="btn-outline-glass"><i class="bi bi-graph-up"></i> مشاهده فرآیند</a>
+                    </div>
+                </div>
+                <div class="col-lg-5 hero-image d-none d-lg-block" data-aos="fade-left" data-aos-delay="200">
+                    <div class="hero-chart-wrap">
+                        <div class="chart-label">📈 رشد یک مشاور املاک با پارمی (۶ ماهه)</div>
+                        <div class="chart-container"><canvas id="growthHeroChart"></canvas></div>
+                        <div class="chart-stats-mini">
+                            <div class="mini-stat"><span class="num">+۱۸۷%</span><span class="lbl">افزایش درآمد</span></div>
+                            <div class="mini-stat"><span class="num">۴۲</span><span class="lbl">مشتری جدید</span></div>
+                            <div class="mini-stat"><span class="num">۲۸</span><span class="lbl">فایل فروخته</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 2: آمار برتر
+    ============================================================ -->
+    <section class="top-stats" data-aos="fade-up">
+        <div class="container-fluid">
+            <div class="row g-3 justify-content-center">
+                <div class="col-md-4 top-stat-item"><span class="number counter" data-target="2400">0</span><span class="label">فایل فعال</span></div>
+                <div class="col-md-4 top-stat-item"><span class="number counter" data-target="150">0</span><span class="label">همکار متخصص</span></div>
+                <div class="col-md-4 top-stat-item"><span class="number counter" data-target="98">0</span><span class="label">٪ رضایت مشتری</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 3: مزایا
+    ============================================================ -->
+    <section class="benefits-grid" data-aos="fade-up">
+        <div class="container-fluid">
+            <div class="text-center mb-4">
+                <h2 class="section-title">چرا <span class="highlight">پارمی</span>؟</h2>
+                <div class="section-divider"></div>
+                <p class="section-subtitle">مزایایی که کسب‌وکار شما را متحول می‌کند</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="50">
+                    <div class="benefit-simple"><span class="b-icon">⚡</span><h6>بهره‌وری تا ۷۰٪</h6><p>اتوماسیون و تطابق هوشمند، زمان و هزینه را کاهش می‌دهد.</p></div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="benefit-simple"><span class="b-icon">📈</span><h6>رشد درآمد ۴۵٪</h6><p>مدیریت دقیق و نرخ تبدیل بالاتر، درآمد شما را افزایش می‌دهد.</p></div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="benefit-simple"><span class="b-icon">🧘</span><h6>کاهش استرس مدیریتی</h6><p>داشبوردهای شفاف و کنترل کامل، مدیریتی آرام‌تر.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 4: مقایسه قبل/بعد (وسط‌چین و کوچک‌تر)
+    ============================================================ -->
+    <section class="compare-section" data-aos="fade-up">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2 class="section-title">قبل و بعد از <span class="highlight">پارمی</span></h2>
+                <div class="section-divider"></div>
+                <p class="section-subtitle">تفاوتی که هوش مصنوعی در کسب‌وکار شما ایجاد می‌کند</p>
+            </div>
+            <div class="row justify-content-center g-3">
+                <div class="col-md-5" data-aos="fade-up" data-aos-delay="50">
+                    <div class="compare-card">
+                        <span class="compare-icon">😓</span>
+                        <h6 class="text-center"><span class="compare-badge before">❌</span>قبل از پارمی</h6><br>
+                        <div class="compare-sub">مدیریت سنتی و پراکنده</div>
+                        <ul>
+                            <li><span class="icon-close"><i class="bi bi-x-circle"></i></span> ثبت دستی و وقت‌گیر فایل‌ها</li>
+                            <li><span class="icon-close"><i class="bi bi-x-circle"></i></span> عدم تشخیص مشتریان تکراری</li>
+                            <li><span class="icon-close"><i class="bi bi-x-circle"></i></span> پیگیری‌های فراموش‌شده</li>
+                            <li><span class="icon-close"><i class="bi bi-x-circle"></i></span> گزارش‌گیری سخت و زمان‌بر</li>
+                            <li><span class="icon-close"><i class="bi bi-x-circle"></i></span> عدم تطابق هوشمند</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-5" data-aos="fade-up" data-aos-delay="100">
+                    <div class="compare-card">
+                        <span class="compare-icon">🚀</span>
+                        <h6 class="text-center"><span class="compare-badge after">✅</span>پس از پارمی</h6><br>
+                        <div class="compare-sub">مدیریت هوشمند و خودکار</div>
+                        <ul>
+                            <li><span class="icon-check"><i class="bi bi-check-circle-fill"></i></span> ثبت خودکار و یکپارچه فایل‌ها</li>
+                            <li><span class="icon-check"><i class="bi bi-check-circle-fill"></i></span> تشخیص تکراری با هوش مصنوعی</li>
+                            <li><span class="icon-check"><i class="bi bi-check-circle-fill"></i></span> یادآورها و آلارم‌های هوشمند</li>
+                            <li><span class="icon-check"><i class="bi bi-check-circle-fill"></i></span> گزارش‌های لحظه‌ای و تحلیلی</li>
+                            <li><span class="icon-check"><i class="bi bi-check-circle-fill"></i></span> تطابق دودویی با درصد هماهنگی</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 5: فرآیند (تایم‌لاین) - وسط‌چین و کوچک‌تر
+    ============================================================ -->
+    <section class="process-timeline" id="journey" data-aos="fade-up">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2 class="section-title">سفر <span class="highlight">یک مشتری</span> در پارمی</h2>
+                <div class="section-divider"></div>
+                <p class="section-subtitle">۱۲ مرحله هوشمند از ثبت تا یادآور خودکار</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-3">
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="50">
+                        <div class="step-dot">۱</div>
+                        <div class="step-content"><h6>ثبت مشتری</h6><p>ثبت کامل اطلاعات تماس، بودجه، مناطق و نیازهای خاص</p><span class="badge-step">ورودی اولیه</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="80">
+                        <div class="step-dot done">۲</div>
+                        <div class="step-content"><h6>تشخیص تکراری با AI</h6><p>حتی با شماره تماس متفاوت، مشتریان تکراری را شناسایی می‌کند</p><span class="badge-step">🧠 هوش مصنوعی</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="110">
+                        <div class="step-dot done">۳</div>
+                        <div class="step-content"><h6>ارجاع به سرپرست</h6><p>مشتری به‌طور خودکار به سرپرست مربوطه ارجاع داده می‌شود</p><span class="badge-step">مدیریت تیم</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="140">
+                        <div class="step-dot done">۴</div>
+                        <div class="step-content"><h6>اختصاص هوشمند به کارشناس</h6><p>با در نظر گرفتن بار کاری و تخصص، به کارشناس مناسب اختصاص می‌دهد</p><span class="badge-step">🔀 توزیع هوشمند</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="170">
+                        <div class="step-dot done">۵</div>
+                        <div class="step-content"><h6>تماس اولیه و گزارش</h6><p>کارشناس تماس می‌گیرد و گزارش تماس را ثبت می‌کند</p><span class="badge-step">📞 تعامل اول</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="200">
+                        <div class="step-dot highlight">۶</div>
+                        <div class="step-content"><h6>تطابق هوشمند با فایل‌ها</h6><p>سیستم بهترین فایل‌ها را با مشتری تطابق می‌دهد و درصد هماهنگی را نمایش می‌دهد</p><span class="badge-step">🎯 تطابق دودویی</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="230">
+                        <div class="step-dot">۷</div>
+                        <div class="step-content"><h6>معرفی و گزارش کارشناس</h6><p>معرفی فایل‌های مناسب و ثبت بازخورد در سیستم</p><span class="badge-step">📝 ثبت گزارش</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="260">
+                        <div class="step-dot">۸</div>
+                        <div class="step-content"><h6>ثبت بازدید و آلارم</h6><p>ثبت بازدید و ارسال یادآوری‌های زمان‌بندی شده توسط سیستم</p><span class="badge-step">⏰ آلارم هوشمند</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="290">
+                        <div class="step-dot">۹</div>
+                        <div class="step-content"><h6>ارجاع به مدیر جلسه</h6><p>در صورت علاقه‌مندی مشتری، پرونده به مدیر جلسه ارجاع می‌شود</p><span class="badge-step">🤝 مذاکره</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="320">
+                        <div class="step-dot">۱۰</div>
+                        <div class="step-content"><h6>انعقاد قرارداد</h6><p>مدیر جلسه مذاکره را هدایت و در صورت توافق، قرارداد تنظیم می‌شود</p><span class="badge-step">📄 قرارداد</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="350">
+                        <div class="step-dot">۱۱</div>
+                        <div class="step-content"><h6>حسابداری و کمیسیون</h6><p>محاسبه کمیسیون و واریز به کیف پول کاربران</p><span class="badge-step">💰 کیف پول</span></div>
+                    </div>
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="380">
+                        <div class="step-dot highlight">۱۲</div>
+                        <div class="step-content"><h6>یادآور هوشمند</h6><p>یک ماه قبل از پایان قرارداد، سیستم به‌طور خودکار یادآوری می‌کند</p><span class="badge-step">🔔 یادآور خودکار</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 6: قابلیت‌های ویژه
+    ============================================================ -->
+    <section class="features-simple" data-aos="fade-up">
+        <div class="container-fluid">
+            <div class="text-center mb-4">
+                <h2 class="section-title">قابلیت‌های <span class="highlight">برتر</span> پارمی</h2>
+                <div class="section-divider"></div>
+                <p class="section-subtitle">ابزارهایی که کار شما را حرفه‌ای‌تر می‌کنند</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="50">
+                    <div class="feature-card-sm"><span class="icon-wrap"><i class="bi bi-robot"></i></span><h6>تشخیص تکراری با AI</h6><p>حتی با تغییر شماره، مشتریان تکراری را شناسایی می‌کند</p></div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card-sm"><span class="icon-wrap"><i class="bi bi-diagram-3"></i></span><h6>فرم‌ساز حرفه‌ای</h6><p>بدون کدنویسی هر فرمی بسازید، سیستم دیتابیس را مدیریت می‌کند</p></div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="feature-card-sm"><span class="icon-wrap"><i class="bi bi-graph-up-arrow"></i></span><h6>تطابق دودویی</h6><p>مشتری با فایل‌های مناسب تطابق داده می‌شود و درصد هماهنگی نمایش داده می‌شود</p></div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="50">
+                    <div class="feature-card-sm"><span class="icon-wrap"><i class="bi bi-person-badge"></i></span><h6>نقش‌های داینامیک</h6><p>نقش‌های جدید با دسترسی دلخواه تعریف کنید، هر کاربر چند نقش همزمان</p></div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card-sm"><span class="icon-wrap"><i class="bi bi-map"></i></span><h6>گوگل مپ یکپارچه</h6><p>نمایش موقعیت فایل‌ها روی نقشه و باز کردن لوکیشن با نرم‌افزارهای مختلف</p></div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="feature-card-sm"><span class="icon-wrap"><i class="bi bi-bell"></i></span><h6>یادآور هوشمند</h6><p>یک ماه قبل از پایان قرارداد، سیستم به‌طور خودکار یادآوری می‌کند</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 7: دستاوردها
+    ============================================================ -->
+    <section class="achievements-section" data-aos="fade-up">
+        <div class="container-fluid">
+            <div class="row g-4 justify-content-center">
+                <div class="col-4 achievement-item" data-aos="fade-up" data-aos-delay="50">
+                    <span class="number counter" data-target="2400">0</span><span class="label">فایل ثبت شده</span><div class="sub-label">در سیستم پارمی</div>
+                </div>
+                <div class="col-4 achievement-item" data-aos="fade-up" data-aos-delay="100">
+                    <span class="number counter" data-target="187">0</span><span class="label">افزایش درآمد (%)</span><div class="sub-label">مشاوران با پارمی</div>
+                </div>
+                <div class="col-4 achievement-item" data-aos="fade-up" data-aos-delay="150">
+                    <span class="number counter" data-target="98">0</span><span class="label">رضایت مشتریان (%)</span><div class="sub-label">از خدمات پارمی</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 8: نظرات
+    ============================================================ -->
+    <section class="testimonials-section" data-aos="fade-up">
+        <div class="container-fluid">
+            <div class="text-center mb-4">
+                <h2 class="section-title">نظرات <span class="highlight">مدیران</span> و <span class="highlight">کارشناسان</span></h2>
+                <div class="section-divider"></div>
+                <p class="section-subtitle">آنچه همکاران ما در مورد پارمی می‌گویند</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="50">
+                    <div class="testimonial-card">
+                        <div class="avatar">ر</div>
+                        <div class="quote">❝</div>
+                        <div class="text">پارمی انقلابی در مدیریت املاک ما ایجاد کرد. سیستم تطابق هوشمند، زمان پیدا کردن فایل مناسب را از ۳ روز به ۳۰ دقیقه کاهش داد.</div>
+                        <div class="stars">★★★★★</div>
+                        <div class="author">رضا محمدی</div>
+                        <div class="role">مدیر دفتر مشاور املاک، تهران</div>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="testimonial-card">
+                        <div class="avatar">س</div>
+                        <div class="quote">❝</div>
+                        <div class="text">با پارمی، مدیریت ۱۵ کارشناس و ۳ سرپرست برایم آسان شده است. گزارش‌های لحظه‌ای واقعاً بی‌نظیر است.</div>
+                        <div class="stars">★★★★★</div>
+                        <div class="author">سارا حسینی</div>
+                        <div class="role">مدیرعامل مجموعه املاک آسمان، مشهد</div>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="testimonial-card">
+                        <div class="avatar">ع</div>
+                        <div class="quote">❝</div>
+                        <div class="text">فرم‌ساز حرفه‌ای پارمی، کار ما را برای ایجاد فرم‌های داخلی بسیار ساده کرده است. بدون برنامه‌نویس، هر فرمی می‌سازیم.</div>
+                        <div class="stars">★★★★★</div>
+                        <div class="author">علی کریمی</div>
+                        <div class="role">مدیر واحد منابع انسانی، اصفهان</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 9: نقش‌ها
+    ============================================================ -->
+    <section class="roles-section" data-aos="fade-up">
+        <div class="container-fluid">
+            <div class="text-center mb-4">
+                <h2 class="section-title">نقش‌های <span class="highlight">پارمی</span></h2>
+                <div class="section-divider"></div>
+                <p class="section-subtitle">هر کاربر با توجه به تخصص خود، نقش مناسب را دریافت می‌کند</p>
+            </div>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <div class="role-pill"><span class="role-icon">👤</span><span class="role-name">کارشناس</span><span class="role-count">۴۲</span></div>
+                <div class="role-pill"><span class="role-icon">👥</span><span class="role-name">سرپرست</span><span class="role-count">۸</span></div>
+                <div class="role-pill"><span class="role-icon">🤝</span><span class="role-name">مدیر جلسه</span><span class="role-count">۶</span></div>
+                <div class="role-pill"><span class="role-icon">📞</span><span class="role-name">کال‌سنتر</span><span class="role-count">۱۲</span></div>
+                <div class="role-pill"><span class="role-icon">💰</span><span class="role-name">حسابداری</span><span class="role-count">۴</span></div>
+                <div class="role-pill"><span class="role-icon">📄</span><span class="role-name">قرارداد</span><span class="role-count">۳</span></div>
+                <div class="role-pill"><span class="role-icon">🛠️</span><span class="role-name">ادمین</span><span class="role-count">۲</span></div>
+                <div class="role-pill"><span class="role-icon">📊</span><span class="role-name">گزارش‌گیر</span><span class="role-count">۵</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 10: سوالات متداول
+    ============================================================ -->
+    <section class="faq-section" data-aos="fade-up">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2 class="section-title">سوالات <span class="highlight">متداول</span></h2>
+                <div class="section-divider"></div>
+                <p class="section-subtitle">پاسخ به سوالات رایج در مورد پارمی</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="faq-item" data-aos="fade-up" data-aos-delay="50" onclick="toggleFAQ(this)">
+                        <div class="faq-question"><span>آیا پارمی برای مشاوران املاک تازه‌کار هم مناسب است؟</span><span class="icon"><i class="bi bi-chevron-down"></i></span></div>
+                        <div class="faq-answer">بله، پارمی با طراحی ساده و رابط کاربری شهودی، برای همه سطوح مهارتی مناسب است. همچنین آموزش‌های کامل و پشتیبانی ۲۴/۷ در اختیار کاربران قرار می‌گیرد.</div>
+                    </div>
+                    <div class="faq-item" data-aos="fade-up" data-aos-delay="80" onclick="toggleFAQ(this)">
+                        <div class="faq-question"><span>آیا امکان یکپارچه‌سازی با سیستم‌های دیگر وجود دارد؟</span><span class="icon"><i class="bi bi-chevron-down"></i></span></div>
+                        <div class="faq-answer">بله، پارمی از API قدرتمند پشتیبانی می‌کند و می‌تواند با سیستم‌های حسابداری، CRM و سایر نرم‌افزارهای سازمانی یکپارچه شود.</div>
+                    </div>
+                    <div class="faq-item" data-aos="fade-up" data-aos-delay="110" onclick="toggleFAQ(this)">
+                        <div class="faq-question"><span>هزینه استفاده از پارمی چگونه است؟</span><span class="icon"><i class="bi bi-chevron-down"></i></span></div>
+                        <div class="faq-answer">پارمی با مدل‌های قیمت‌گذاری انعطاف‌پذیر بر اساس تعداد کاربران و نیازهای سازمان طراحی شده است. برای دریافت مشاوره دقیق با تیم فروش تماس بگیرید.</div>
+                    </div>
+                    <div class="faq-item" data-aos="fade-up" data-aos-delay="140" onclick="toggleFAQ(this)">
+                        <div class="faq-question"><span>آیا اطلاعات ما در پارمی امن است؟</span><span class="icon"><i class="bi bi-chevron-down"></i></span></div>
+                        <div class="faq-answer">امنیت اطلاعات اولویت اول پارمی است. تمامی داده‌ها با رمزنگاری پیشرفته محافظت می‌شوند و سرورها در محیط امن با پشتیبان‌گیری منظم نگهداری می‌شوند.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش 11: CTA نهایی
+    ============================================================ -->
+    <section class="cta-ultimate" id="demo">
+        <div class="orb-bg orb-bg-1"></div>
+        <div class="orb-bg orb-bg-2"></div>
+        <div class="container" data-aos="zoom-in" data-aos-delay="50">
+            <h2>آماده‌اید <span style="color: #FFD700;">کسب‌وکار خود را متحول</span> کنید؟</h2>
+            <p>همین حالا با ما تماس بگیرید یا دموی رایگان درخواست کنید تا قدرت پارمی را از نزدیک ببینید.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="tel:09111775407" class="btn-cta-ultimate"><i class="bi bi-telephone-fill"></i> تماس بگیرید</a>
+                <a href="{% url 'contact' %}" class="btn-cta-ultimate-glass"><i class="bi bi-envelope"></i> درخواست دمو</a>
+            </div>
+            <p class="mt-4" style="font-size: 0.7rem; opacity: 0.2;">پشتیبانی پارمی ۲۴/۷ آماده پاسخگویی به شماست</p>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block Footer_ref %}
+{{ block.super }}
+<script>
+    // ===== راه‌اندازی AOS =====
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') {
+            AOS.init({ once: true, offset: 40, duration: 700, easing: 'ease-in-out' });
+        }
+    });
+
+    // ===== شمارنده‌ها =====
+    function animateCounters() {
+        const counters = document.querySelectorAll('.counter');
+        const speed = 80;
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target')) || 0;
+            if (target === 0) { counter.textContent = '0'; return; }
+            const increment = Math.ceil(target / 30);
+            let current = 0;
+            const update = () => {
+                current += increment;
+                if (current < target) {
+                    counter.textContent = current.toLocaleString();
+                    setTimeout(update, speed);
+                } else {
+                    counter.textContent = target.toLocaleString();
+                }
+            };
+            update();
+        });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounters();
+                observer.disconnect();
+            }
+        });
+    }, { threshold: 0.15 });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const sections = [document.querySelector('.top-stats'), document.querySelector('.achievements-section')];
+        sections.forEach(s => { if (s) observer.observe(s); });
+    });
+
+    // ===== نمودار هیرو با انیمیشن از صفر =====
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('growthHeroChart');
+        if (ctx) {
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'],
+                    datasets: [{
+                        label: 'درآمد (میلیون تومان)',
+                        data: [0, 0, 0, 0, 0, 0],
+                        borderColor: '#6C2BD9',
+                        backgroundColor: 'rgba(108, 43, 217, 0.06)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6C2BD9',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        animation: { duration: 0 }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 0 },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' میلیون تومان';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.02)' },
+                            ticks: { color: 'rgba(255,255,255,0.15)', font: { size: 8 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.15)', font: { size: 8 } }
+                        }
+                    }
+                }
+            });
+
+            setTimeout(() => {
+                chart.data.datasets[0].data = [6.2, 7.8, 9.5, 11.3, 14.2, 17.8];
+                chart.update({ duration: 2200, easing: 'easeOutQuart' });
+            }, 400);
+        }
+    });
+
+    // ===== FAQ Toggle =====
+    function toggleFAQ(el) {
+        const item = el.closest('.faq-item');
+        const isActive = item.classList.contains('active');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+        if (!isActive) item.classList.add('active');
+    }
+</script>
+{% endblock %}

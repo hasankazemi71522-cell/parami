@@ -1,0 +1,1166 @@
+<!-- property_detail.html -->
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">{{ title }}</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card {% if not property.is_active %}border-danger{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap dark_back_color">
+                    <h4 class="card-title mb-0">
+                        {{ property.title }}
+                        {% if not property.is_active %}
+                            <span class="badge bg-danger ms-2">حذف شده</span>
+                        {% endif %}
+                        <!-- 🆕 نمایش کد نمایشی ملک در هدر -->
+                        <span class="badge bg-secondary ms-2" style="font-size: 0.9rem; direction: ltr; vertical-align: middle;">
+                            <i class="fas fa-hashtag"></i> {{ property.display_code|default:"-" }}
+                        </span>
+                    </h4>
+                    <div>
+                        <span class="badge {% if property.status == 'confirmed' %}bg-success{% elif property.status == 'pending' %}bg-warning{% elif property.status == 'deposit' %}bg-info{% elif property.status == 'contract' %}bg-primary{% elif property.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %} fs-6">
+                            {{ property.get_status_display }}
+                        </span>
+                        <span class="badge bg-secondary fs-6">{{ property.get_contract_type_display }}</span>
+                        <span class="badge bg-primary fs-6">{{ property.property_type.name }}</span>
+                        {% if property.is_featured %}
+                            <span class="badge bg-warning text-dark fs-6"><i class="fas fa-star"></i> ویژه</span>
+                        {% endif %}
+                        {% if not property.is_visible %}
+                            <span class="badge bg-danger fs-6">غیرقابل مشاهده</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body dark_back_color">
+                    <!-- 🆕 دکمه‌های ثبت سریع -->
+                    <div class="d-flex gap-2 flex-wrap mb-3">
+                        <a href="{% url 'estate:customer_create' %}" class="btn btn-success">
+                            <i class="fas fa-user-plus"></i> ثبت مشتری جدید
+                        </a>
+                        <a href="{% url 'estate:property_create' %}" class="btn btn-primary">
+                            <i class="fas fa-building"></i> ثبت فایل جدید
+                        </a>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    {% for image in images %}
+                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption }}" style="height: 400px; object-fit: cover;">
+                                            {% if image.caption %}
+                                                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
+                                                    <p class="text-white">{{ image.caption }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% empty %}
+                                        <div class="carousel-item active">
+                                            <div class="bg-secondary text-white text-center py-5" style="height: 400px;">
+                                                <i class="fas fa-building fa-5x"></i>
+                                                <p class="mt-3">تصویری برای این ملک ثبت نشده است</p>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% if images|length > 1 %}
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon"></span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon"></span>
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                            <!-- 🆕 تصویر نما (ویژه و محرمانه) -->
+                            {% if property.showcase_image %}
+                                {% if "admin" in this_user.get_role_names or "callcenter" in this_user.get_role_names or this_user.id == property.created_by.id or this_user.id == property.expert.id %}
+                                    <div class="card mt-3 border-warning">
+                                        <div class="card-header bg-warning bg-opacity-10 dark_back_color">
+                                            <h6 class="mb-0 text-warning">
+                                                <i class="fas fa-crown"></i> تصویر نما (ویژه و محرمانه)
+                                                <span class="badge bg-danger ms-2">دسترسی ویژه</span>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body text-center dark_back_color">
+                                            <img src="{{ property.showcase_image.url }}"
+                                                 class="img-fluid rounded border"
+                                                 alt="تصویر نما"
+                                                 style="max-height: 400px; object-fit: contain;">
+                                            <p class="text-muted mt-2 small">
+                                                <i class="fas fa-lock"></i>
+                                                این تصویر فقط برای مدیران، کال‌سنتر، ثبت‌کننده و کارشناس ملک قابل مشاهده است
+                                            </p>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="card mt-3 border-warning">
+                                        <div class="card-header bg-warning bg-opacity-10 dark_back_color">
+                                            <h6 class="mb-0 text-warning">
+                                                <i class="fas fa-crown"></i> تصویر نما (ویژه و محرمانه)
+                                                <span class="badge bg-secondary ms-2">محرمانه</span>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body text-center py-5 dark_back_color">
+                                            <i class="fas fa-lock fa-4x text-muted d-block mb-3"></i>
+                                            <p class="text-muted">
+                                                شما دسترسی مشاهده این تصویر را ندارید.
+                                                <br>
+                                                <small>فقط مدیران، کال‌سنتر، ثبت‌کننده و کارشناس ملک می‌توانند آن را مشاهده کنند.</small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body dark_back_color">
+                                    <h6 class="card-title">اطلاعات سریع</h6>
+                                    <table class="table table-sm table-borderless">
+                                        <!-- 🆕 ردیف کد نمایشی -->
+                                        {% if property.display_code %}
+                                        <tr>
+                                            <th>کد ملک:</th>
+                                            <td class="fw-bold" dir="ltr">
+                                                <span class="badge bg-secondary">{{ property.display_code }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        <!-- ✅ نمایش قیمت و قیمت متری فقط برای فروش، پیش‌فروش و هر دو -->
+                                        {% if property.contract_type == 'sale' or property.contract_type == 'pre_sale' or property.contract_type == 'both' %}
+                                            {% if property.price %}
+                                                <tr>
+                                                    <th>قیمت:</th>
+                                                    <td class="fw-bold text-primary fs-5">{{ property.formatted_price }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if property.price_per_meter %}
+                                                <tr>
+                                                    <th>قیمت متری:</th>
+                                                    <td class="fw-bold text-primary fs-5">{{ property.formatted_price_per_meter }}</td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        <!-- ✅ نمایش اجاره و رهن فقط برای اجاره و هر دو -->
+                                        {% if property.contract_type == 'rent' or property.contract_type == 'both' %}
+                                            {% if property.rent_price %}
+                                                <tr>
+                                                    <th>اجاره ماهیانه:</th>
+                                                    <td>{{ property.formatted_rent }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if property.mortgage_price %}
+                                                <tr>
+                                                    <th>رهن:</th>
+                                                    <td>{{ property.formatted_mortgage }}</td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if property.is_rent_convertible %}
+                                                <tr>
+                                                    <th>رهن و اجاره:</th>
+                                                    <td>
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-exchange-alt"></i> قابل تبدیل
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if property.area %}
+                                        <tr>
+                                            <th>متراژ:</th>
+                                            <td>{{ property.area }} متر مربع</td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.rooms %}
+                                        <tr>
+                                            <th>اتاق:</th>
+                                            <td>{{ property.rooms }} اتاق</td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.units_per_floor %}
+                                        <tr>
+                                            <th>واحد در طبقه:</th>
+                                            <td>{{ property.units_per_floor }}</td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.unit_condition %}
+                                        <tr>
+                                            <th>وضعیت واحد:</th>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ property.unit_condition.name }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.building_orientation %}
+                                        <tr>
+                                            <th>جهت ساختمان:</th>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ property.building_orientation.name }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.unit_orientation %}
+                                        <tr>
+                                            <th>جهت واحد:</th>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ property.unit_orientation.name }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.dong %}
+                                        <tr>
+                                            <th>دانگ:</th>
+                                            <td>{{ property.dong }}</td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.full_location %}
+                                        <tr>
+                                            <th>موقعیت:</th>
+                                            <td>
+                                                {{ property.full_location }}
+                                                {% if this_user is property.supervisor or  this_user is property.expert or "contact_information_show" in perimissin_list %}
+                                                {% if property.latitude and property.longitude %}
+                                                    <div class="mt-2 d-flex flex-wrap gap-1">
+                                                        <a href="https://www.google.com/maps?q={{ property.latitude }},{{ property.longitude }}"
+                                                           target="_blank" class="btn btn-sm btn-outline-danger" title="مشاهده در گوگل مپ">
+                                                            <i class="bi bi-google"></i> گوگل مپ
+                                                        </a>
+                                                        <a href="https://nshn.ir/geo?lat={{ property.latitude }}&lng={{ property.longitude }}"
+                                                           target="_blank" class="btn btn-sm btn-outline-success" title="مشاهده در نشان">
+                                                            <i class="bi bi-pin-map"></i> نشان
+                                                        </a>
+                                                        <a href="https://balad.ir/p?lat={{ property.latitude }}&lng={{ property.longitude }}"
+                                                           target="_blank" class="btn btn-sm btn-outline-primary" title="مشاهده در بلد">
+                                                            <i class="bi bi-compass"></i> بلد
+                                                        </a>
+                                                        <a href="https://waze.com/ul?ll={{ property.latitude }},{{ property.longitude }}&navigate=yes"
+                                                           target="_blank" class="btn btn-sm btn-outline-info" title="مسیریابی با ویز">
+                                                            <i class="bi bi-car-front"></i> ویز
+                                                        </a>
+                                                        <a href="geo:{{ property.latitude }},{{ property.longitude }}"
+                                                           class="btn btn-sm btn-outline-secondary" title="باز کردن در نقشه دستگاه">
+                                                            <i class="bi bi-map"></i> نقشه دستگاه
+                                                        </a>
+                                                    </div>
+                                                {% endif %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if property.created_by %}
+                                        <tr>
+                                            <th>ثبت‌کننده:</th>
+                                            <td>{{ property.created_by.get_full_name|default:property.created_by.username }}</td>
+                                        </tr>
+                                        {% endif %}
+
+                                        <!-- ✅ تاریخ ثبت - شمسی -->
+                                        {% if property.created_at_shamsi %}
+                                        <tr>
+                                            <th>تاریخ ثبت:</th>
+                                            <td>{{ property.created_at_shamsi }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </table>
+                                    <div class="d-grid gap-2">
+                                        {% if "admin" in request.user.get_role_names or "callcenter" in request.user.get_role_names %}
+                                        <a href="{% url 'estate:property_edit' property.id %}" class="btn btn-primary">
+                                            <i class="fas fa-edit"></i> ویرایش
+                                        </a>
+                                        {% endif %}
+                                        {% if property.created_by == this_user and property.status == "pending" %}
+                                        <a href="{% url 'estate:property_edit' property.id %}" class="btn btn-primary">
+                                            <i class="fas fa-edit"></i> ویرایش
+                                        </a>
+                                        {% endif %}
+                                        {% if property.is_active %}
+                                            {% if "property_delete" in perimissin_list %}
+                                            <a href="{% url 'estate:property_delete' property.id %}" class="btn btn-danger">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </a>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if "property_restore" in perimissin_list %}
+                                            <a href="{% url 'estate:property_restore' property.id %}" class="btn btn-success">
+                                                <i class="fas fa-undo"></i> بازیابی
+                                            </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- اطلاعات کامل -->
+    <!-- ============================================================ -->
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <!-- توضیحات -->
+            {% if property.description %}
+            <div class="card">
+                <div class="card-header dark_back_color">
+                    <h6 class="card-title mb-0">📝 توضیحات</h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    <p>{{ property.description|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- بخش انواع کاربری -->
+            {% if property.primary_usage or property.usage_types.exists %}
+            <div class="card mt-3 border-purple">
+                <div class="card-header bg-purple bg-opacity-10 dark_back_color">
+                    <h6 class="card-title mb-0 text-purple">
+                        <i class="fas fa-layer-group"></i> انواع کاربری ملک
+                    </h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="row">
+                        {% if property.primary_usage %}
+                            <div class="col-12 mb-2">
+                                <span class="fw-bold">کاربری سندی (اصلی):</span>
+                                <span class="badge ms-2" style="background-color: {{ property.primary_usage.color|default:'#6c757d' }}; padding: 6px 14px; font-size: 0.95rem;">
+                                    <i class="fas fa-star"></i>
+                                    {{ property.primary_usage.name }}
+                                </span>
+                                {% if property.primary_usage.description %}
+                                    <p class="text-muted small mt-1">{{ property.primary_usage.description }}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        {% if property.usage_types.exists %}
+                            <div class="col-12">
+                                <span class="fw-bold">کاربردهای فرعی:</span>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    {% for usage in property.usage_types.all %}
+                                        <span class="badge" style="background-color: {{ usage.color|default:'#6c757d' }}; padding: 6px 14px; font-size: 0.9rem;">
+                                            <i class="fas {{ usage.icon|default:'fa-tag' }}"></i>
+                                            {{ usage.name }}
+                                            {% if usage.description %}
+                                                <span class="ms-1" data-bs-toggle="tooltip" title="{{ usage.description }}">
+                                                    <i class="fas fa-info-circle text-light"></i>
+                                                </span>
+                                            {% endif %}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🆕 بخش وضعیت سند و پایان کار -->
+            {% if property.has_completion_certificate or property.has_document or property.dong or property.document_type or property.ownership_document_type %}
+            <div class="card mt-3 border-success">
+                <div class="card-header bg-success bg-opacity-10 dark_back_color">
+                    <h6 class="card-title mb-0 text-success">
+                        <i class="fas fa-file-alt"></i> وضعیت سند و پایان کار
+                    </h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="row">
+                        {% if property.has_completion_certificate %}
+                        <div class="col-md-4">
+                            <p><strong>پایان کار:</strong>
+                                <span class="badge bg-success">دارد</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        {% if property.has_document %}
+                        <div class="col-md-4">
+                            <p><strong>سند:</strong>
+                                <span class="badge bg-success">دارد</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        {% if property.dong %}
+                        <div class="col-md-4">
+                            <p><strong>دانگ:</strong> {{ property.dong }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="row mt-2">
+                        {% if property.document_type %}
+                        <div class="col-md-6">
+                            <p><strong>نوع سند:</strong>
+                                <span class="badge bg-info">{{ property.document_type.name }}</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        {% if property.ownership_document_type %}
+                        <div class="col-md-6">
+                            <p><strong>نوع مالکیت سند:</strong>
+                                <span class="badge bg-info">{{ property.ownership_document_type.name }}</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🆕 بخش جهت‌ها -->
+            {% if property.building_orientation or property.unit_orientation %}
+            <div class="card mt-3 border-secondary">
+                <div class="card-header bg-secondary bg-opacity-10 dark_back_color">
+                    <h6 class="card-title mb-0 text-secondary">
+                        <i class="fas fa-compass"></i> جهت‌ها
+                    </h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="row">
+                        {% if property.building_orientation %}
+                        <div class="col-md-6">
+                            <p><strong>جهت ساختمان:</strong>
+                                <span class="badge bg-secondary">{{ property.building_orientation.name }}</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        {% if property.unit_orientation %}
+                        <div class="col-md-6">
+                            <p><strong>جهت واحد:</strong>
+                                <span class="badge bg-secondary">{{ property.unit_orientation.name }}</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- امکانات -->
+            {% if property.requirements.exists %}
+            <div class="card mt-3">
+                <div class="card-header dark_back_color">
+                    <h6 class="card-title mb-0">🎯 امکانات</h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="row">
+                        {% for req in property.requirements.all %}
+                            <div class="col-md-4 col-sm-6 mb-2">
+                                <span class="badge bg-light text-dark border p-2 dark_back_color2">
+                                    {% if req.icon %}<i class="{{ req.icon }}"></i>{% endif %}
+                                    {{ req.name }}
+                                    {% if req.category %}
+                                        <small class="text-muted">({{ req.category }})</small>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ویدئوها -->
+            {% if videos %}
+                <div class="card mt-3">
+                    <div class="card-header dark_back_color">
+                        <h6 class="card-title mb-0">🎬 ویدئوها</h6>
+                    </div>
+                    <div class="card-body dark_back_color">
+                        <div class="row">
+                            {% for video in videos %}
+                                <div class="col-md-3 col-sm-4 mb-3">
+                                    <div class="card h-100">
+                                        {% if video.video_type == 'upload' %}
+                                            <video src="{{ video.video_file.url }}" class="card-img-top" controls style="height:150px; object-fit:cover; background:#000;"></video>
+                                        {% else %}
+                                            <div style="height:150px; object-fit:cover; background:#000;">
+                                                {{ video.video_link|safe }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body dark_back_color p-2 text-center">
+                                            <small>
+                                                {% if video.is_main %}
+                                                    <span class="badge bg-success">اصلی</span>
+                                                {% endif %}
+                                                {% if video.video_type == 'link' %}
+                                                    <span class="badge bg-info">لینک</span>
+                                                {% else %}
+                                                    <span class="badge bg-primary">آپلود</span>
+                                                {% endif %}
+                                                {% if video.title %}
+                                                    <br><span class="text-muted small">{{ video.title|truncatechars:20 }}</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- اطلاعات تماس -->
+            {% if property.contact_name or property.contact_phone or property.contact_email %}
+            <div class="card">
+                <div class="card-header dark_back_color">
+                    <h6 class="card-title mb-0">📞 اطلاعات تماس</h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    {% if property.contact_name %}
+                        <p><strong>نام:</strong> {{ property.contact_name }}</p>
+                    {% endif %}
+                    {% if property.contact_phone %}
+                        <p><strong>تلفن:</strong> <span dir="ltr">{{ property.contact_phone }}</span></p>
+                    {% endif %}
+                    {% if property.contact_email %}
+                        <p><strong>ایمیل:</strong> {{ property.contact_email }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- مالک -->
+            <div class="card mt-3">
+                <div class="card-header dark_back_color">
+                    <h6 class="card-title mb-0">👤 مالک ملک</h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    {% if "contact_information_show" in perimissin_list %}
+                        {% if property.owner %}
+                            <p>
+                                <strong>{{ property.owner.get_full_name }}</strong>
+                                {% if property.owner.mobile %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-phone"></i> {{ property.owner.mobile }}
+                                </small>
+                                {% endif %}
+                                {% if property.address %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt"></i> {{ property.address }}
+                                </small>
+                                {% endif %}
+                                {% if property.owner.email %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-envelope"></i> {{ property.owner.email }}
+                                </small>
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <p class="text-muted">مالکی برای این ملک ثبت نشده است</p>
+                        {% endif %}
+                    {% elif property.expert == this_user %}
+                        {% if property.owner %}
+                            <p>
+                                <strong>{{ property.owner.get_full_name }}</strong>
+                                {% if property.owner.mobile %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-phone"></i> {{ property.owner.mobile }}
+                                </small>
+                                {% endif %}
+                                {% if property.address %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt"></i> {{ property.address }}
+                                </small>
+                                {% endif %}
+                                {% if property.owner.email %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-envelope"></i> {{ property.owner.email }}
+                                </small>
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <p class="text-muted">مالکی برای این ملک ثبت نشده است</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">شما به اطلاعات تماس دسترسی ندارید</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- تیم مدیریت -->
+            {% if property.supervisor or property.expert %}
+            <div class="card mt-3">
+                <div class="card-header dark_back_color">
+                    <h6 class="card-title mb-0">👔 تیم مدیریت</h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    {% if property.supervisor %}
+                    <p>
+                        <strong>سرپرست:</strong>
+                        <span class="badge bg-primary">
+                            <i class="fas fa-user-tie"></i> {{ property.supervisor.get_full_name }}
+                        </span>
+                        {% if property.supervisor.mobile %}
+                        <a href="tel:{{ property.supervisor.mobile }}">
+                            <span class="badge bg-primary">
+                                <i class="fas fa-phone"></i> {{ property.supervisor.mobile }}
+                            </span>
+                        </a>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                    {% if property.expert %}
+                    <p>
+                        <strong>کارشناس:</strong>
+                        <span class="badge bg-info">
+                            <i class="fas fa-user-check"></i> {{ property.expert.get_full_name }}
+                        </span>
+                        {% if property.expert.mobile %}
+                        <a href="tel:{{ property.expert.mobile }}">
+                            <span class="badge bg-info">
+                                <i class="fas fa-phone"></i> {{ property.expert.mobile }}
+                            </span>
+                        </a>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- آمار -->
+            {% if property.views_count or property.favorites_count or property.published_at %}
+            <div class="card mt-3">
+                <div class="card-header dark_back_color">
+                    <h6 class="card-title mb-0">📊 آمار</h6>
+                </div>
+                <div class="card-body dark_back_color">
+                    {% if property.views_count %}
+                        <p><i class="fas fa-eye"></i> بازدیدها: {{ property.views_count }}</p>
+                    {% endif %}
+                    {% if property.favorites_count %}
+                        <p><i class="fas fa-heart"></i> علاقه‌مندی‌ها: {{ property.favorites_count }}</p>
+                    {% endif %}
+                    <!-- ✅ تاریخ انتشار - شمسی -->
+                    {% if property.published_at_shamsi %}
+                        <p><i class="fas fa-calendar"></i> انتشار: {{ property.published_at_shamsi }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 📝 بخش یادداشت‌ها -->
+    <!-- ============================================================ -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sticky-note"></i> یادداشت‌ها
+                            <span class="badge bg-dark ms-2">{{ notes|length }}</span>
+                        </h5>
+                        <button type="button" class="btn btn-sm btn-primary"
+                                onclick="openAddNoteModal('{{ property.id }}', '{{ property.title|default:'بدون عنوان' }}')"
+                                data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                            <i class="fas fa-plus"></i> افزودن یادداشت
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body dark_back_color">
+                    {% if notes %}
+                        <div class="timeline">
+                            {% for note in notes %}
+                                <div class="timeline-item {% if note.is_resolved %}resolved{% endif %}">
+                                    <div class="timeline-marker {% if note.priority == 'urgent' %}bg-danger{% elif note.priority == 'high' %}bg-warning{% elif note.priority == 'medium' %}bg-primary{% else %}bg-secondary{% endif %}"></div>
+                                    <div class="timeline-content dark_back_color2">
+                                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                            <div>
+                                                <h6 class="mb-0">
+                                                    <strong>{{ note.title }}</strong>
+                                                    <span class="badge ms-2" style="background-color: {{ note.priority_color }};">
+                                                        <i class="fas {{ note.priority_icon }}"></i>
+                                                        {{ note.get_priority_display }}
+                                                    </span>
+                                                    <span class="badge bg-info ms-1">{{ note.get_note_type_display }}</span>
+                                                    {% if note.is_resolved %}
+                                                        <span class="badge bg-success ms-1">
+                                                            <i class="fas fa-check"></i> برطرف شده
+                                                        </span>
+                                                    {% endif %}
+                                                </h6>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <!-- ✅ تاریخ یادداشت - شمسی -->
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock"></i> {{ note.created_at_shamsi }}
+                                                </small>
+                                                {% if not note.is_resolved %}
+                                                    <button type="button" class="btn btn-sm btn-success"
+                                                            onclick="resolveNote('{{ note.id }}')">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-2">
+                                            <p class="card-text">{{ note.content|linebreaks }}</p>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-3 mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user-pen"></i>
+                                                <strong>نویسنده:</strong> {{ note.created_by.get_full_name|default:note.created_by.username|default:'سیستم' }}
+                                            </small>
+                                            {% if note.assigned_to %}
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user-tie"></i>
+                                                    <strong>اختصاص یافته به:</strong> {{ note.assigned_to.get_full_name|default:note.assigned_to.username }}
+                                                </small>
+                                            {% endif %}
+                                            {% if note.resolved_by %}
+                                                <small class="text-muted">
+                                                    <i class="fas fa-check-circle text-success"></i>
+                                                    <strong>برطرف کننده:</strong> {{ note.resolved_by.get_full_name|default:note.resolved_by.username }}
+                                                    <!-- ✅ تاریخ برطرف شدن - شمسی -->
+                                                    <span class="ms-1">({{ note.resolved_at_shamsi }})</span>
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-sticky-note fa-3x text-muted mb-3 d-block"></i>
+                            <p class="text-muted mb-0">هیچ یادداشتی برای این فایل ثبت نشده است.</p>
+                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                    onclick="openAddNoteModal('{{ property.id }}', '{{ property.title|default:'بدون عنوان' }}')"
+                                    data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                                <i class="fas fa-plus"></i> اولین یادداشت را ثبت کنید
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- تطابق‌ها -->
+    <!-- ============================================================ -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center dark_back_color">
+                    <h6 class="card-title mb-0">🎯 بهترین تطابق‌ها با مشتریان</h6>
+                    <span class="badge bg-info">
+                        میانگین: {{ match_stats.avg|floatformat:0 }}%
+                    </span>
+                </div>
+                <div class="card-body dark_back_color">
+                    {% if top_matches %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>مشتری</th>
+                                        <th>امتیاز</th>
+                                        <th>سطح</th>
+                                        <th>وضعیت</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for match in top_matches %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'estate:customer_detail' match.customer.id %}">
+                                                    {{ match.customer.full_name }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px; width: 100px;">
+                                                    <div class="progress-bar {% if match.is_high_match %}bg-success{% elif match.is_good_match %}bg-warning{% else %}bg-danger{% endif %}"
+                                                         role="progressbar"
+                                                         style="width: {{ match.match_score }}%;"
+                                                         aria-valuenow="{{ match.match_score }}"
+                                                         aria-valuemin="0"
+                                                         aria-valuemax="100">
+                                                        {{ match.match_score }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if match.is_high_match %}bg-success{% elif match.is_good_match %}bg-warning{% else %}bg-danger{% endif %}">
+                                                    {{ match.match_level }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ match.get_status_display }}</span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'estate:customer_detail' match.customer.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-info-circle fa-2x text-muted"></i>
+                            <p class="text-muted mt-2">هیچ تطابقی برای این ملک وجود ندارد. برای محاسبه تطابق روی دکمه "محاسبه تطابق" کلیک کنید.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- دکمه‌های پایین -->
+    <!-- ============================================================ -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="javascript:history.back()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> بازگشت
+                    </a>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <!-- 🆕 دکمه‌های ثبت سریع -->
+                    <a href="{% url 'estate:customer_create' %}" class="btn btn-success">
+                        <i class="fas fa-user-plus"></i> ثبت مشتری جدید
+                    </a>
+                    <a href="{% url 'estate:property_create' %}" class="btn btn-primary">
+                        <i class="fas fa-building"></i> ثبت فایل جدید
+                    </a>
+                    {% if "property_edit" in perimissin_list %}
+                    <a href="{% url 'estate:property_edit' property.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> ویرایش
+                    </a>
+                    {% endif %}
+                    {% if property.is_active %}
+                        {% if "property_delete" in perimissin_list %}
+                        <a href="{% url 'estate:property_delete' property.id %}" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> حذف
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        {% if "property_restore" in perimissin_list %}
+                        <a href="{% url 'estate:property_restore' property.id %}" class="btn btn-success">
+                            <i class="fas fa-undo"></i> بازیابی
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ====== مودال افزودن یادداشت ====== -->
+<!-- ============================================================ -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="fas fa-sticky-note"></i>
+                    <span id="addNoteModalTitle">افزودن یادداشت جدید</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addNoteForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="property_id" id="notePropertyId" value="{{ property.id }}">
+
+                    <div class="alert alert-info">
+                        <strong>فایل:</strong> <span id="notePropertyName">{{ property.title|default:'بدون عنوان' }}</span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">عنوان <span class="text-danger">*</span></label>
+                            <input type="text" name="title" id="noteTitle" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">اولویت</label>
+                            <select name="priority" id="notePriority" class="form-select">
+                                <option value="low">کم</option>
+                                <option value="medium" selected>متوسط</option>
+                                <option value="high">بالا</option>
+                                <option value="urgent">فوری</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">نوع یادداشت</label>
+                            <select name="note_type" id="noteType" class="form-select">
+                                <option value="general">یادداشت عمومی</option>
+                                <option value="property">یادداشت ملک</option>
+                                <option value="important">نکته مهم</option>
+                                <option value="warning">هشدار</option>
+                                <option value="review">نظر کارشناسی</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">متن یادداشت <span class="text-danger">*</span></label>
+                        <textarea name="content" id="noteContent" class="form-control" rows="4" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-warning" onclick="submitAddNote()">
+                    <i class="fas fa-save"></i> ثبت یادداشت
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- استایل‌ها -->
+<!-- ============================================================ -->
+<style>
+    .text-purple { color: #6f42c1; }
+    .bg-purple { background-color: #6f42c1; }
+    .border-purple { border-color: #6f42c1 !important; }
+    .bg-purple.bg-opacity-10 { background-color: rgba(111, 66, 193, 0.1); }
+
+    /* ====== استایل‌های تایم‌لاین ====== */
+    .timeline {
+        position: relative;
+        padding: 0;
+        list-style: none;
+    }
+    .timeline:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: #e9ecef;
+        left: 20px;
+        margin-left: -1.5px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding-left: 50px;
+    }
+    .timeline-item.resolved {
+        opacity: 0.7;
+    }
+    .timeline-item.resolved .timeline-content {
+        background: #f8f9fa;
+    }
+    .timeline-marker {
+        position: absolute;
+        top: 0;
+        left: 11px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #e9ecef;
+        z-index: 1;
+    }
+    .timeline-content {
+        background: #fff;
+        padding: 15px 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .timeline-content:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .timeline-content p {
+        margin-bottom: 0;
+    }
+    .timeline-content .card-text {
+        white-space: pre-wrap;
+    }
+
+    /* ====== استایل دکمه‌های نقشه ====== */
+    .btn-map {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        transition: all 0.2s ease;
+    }
+    .btn-map:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<!-- ============================================================ -->
+<!-- اسکریپت‌ها -->
+<!-- ============================================================ -->
+<script>
+    // ====== تابع دریافت CSRF Token ======
+    function getCSRFToken() {
+        const cookieValue = document.cookie.match('(^|; )csrftoken=([^;]*)');
+        return cookieValue ? cookieValue[2] : null;
+    }
+
+    // ====== فعال‌سازی tooltip‌ها ======
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    // ====== باز کردن مودال افزودن یادداشت ======
+    function openAddNoteModal(propertyId, propertyName) {
+        document.getElementById('notePropertyId').value = propertyId;
+        document.getElementById('notePropertyName').textContent = propertyName;
+        document.getElementById('addNoteModalTitle').textContent = `افزودن یادداشت برای فایل: ${propertyName}`;
+
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteContent').value = '';
+        document.getElementById('notePriority').value = 'medium';
+        document.getElementById('noteType').value = 'general';
+    }
+
+    // ====== ثبت یادداشت جدید ======
+    function submitAddNote() {
+        const propertyId = document.getElementById('notePropertyId').value;
+        const title = document.getElementById('noteTitle').value;
+        const content = document.getElementById('noteContent').value;
+        const priority = document.getElementById('notePriority').value;
+        const noteType = document.getElementById('noteType').value;
+
+        if (!title || !content) {
+            alert('عنوان و متن یادداشت الزامی است');
+            return;
+        }
+
+        const csrftoken = getCSRFToken();
+        if (!csrftoken) {
+            alert('❌ CSRF Token یافت نشد. لطفاً صفحه را Refresh کنید.');
+            return;
+        }
+
+        const url = `/api/note/property/${propertyId}/`;
+        const params = new URLSearchParams();
+        params.append('title', title);
+        params.append('content', content);
+        params.append('priority', priority);
+        params.append('note_type', noteType);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || `HTTP error! status: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('✅ یادداشت با موفقیت ثبت شد');
+                location.reload();
+            } else {
+                alert('❌ خطا: ' + (data.error || 'مشخص نیست'));
+            }
+        })
+        .catch(error => {
+            console.error('❌ خطا:', error);
+            alert('❌ خطا در ارتباط با سرور:\n' + error.message);
+        });
+    }
+
+    // ====== برطرف کردن یادداشت ======
+    function resolveNote(noteId) {
+        if (!confirm('آیا از برطرف شدن این یادداشت اطمینان دارید؟')) return;
+
+        const csrftoken = getCSRFToken();
+        if (!csrftoken) {
+            alert('❌ CSRF Token یافت نشد. لطفاً صفحه را Refresh کنید.');
+            return;
+        }
+
+        const url = `/api/note/resolve/${noteId}/`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || `HTTP error! status: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('✅ یادداشت با موفقیت برطرف شد');
+                location.reload();
+            } else {
+                alert('❌ خطا: ' + (data.error || 'مشخص نیست'));
+            }
+        })
+        .catch(error => {
+            console.error('❌ خطا:', error);
+            alert('❌ خطا در ارتباط با سرور:\n' + error.message);
+        });
+    }
+</script>
+{% endblock %}

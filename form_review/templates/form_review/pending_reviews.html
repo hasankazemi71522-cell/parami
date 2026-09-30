@@ -1,0 +1,81 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">در انتظار</span>
+            <span>بررسی</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if instances %}
+                <div class="table-responsive dark_back_color">
+                    <table class="table table-striped dark_back_color">
+                        <thead>
+                            <tr>
+                                <th>عنوان فرم</th>
+                                <th>ایجاد کننده</th>
+                                <th>مرحله فعلی</th>
+                                <th>وضعیت</th>
+                                <th>تاریخ ارسال</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for instance in instances %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ instance.custom_name|default:instance.title }}</strong>
+                                        {% if instance.total_rejections > 0 %}
+                                            <span class="badge bg-danger ms-2">{{ instance.total_rejections }} برگشت</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ instance.created_by.get_full_name|default:instance.created_by.username }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">مرحله {{ instance.current_step_number }}</span>
+                                    </td>
+                                    <td>
+                                        {% if instance.status == 'rejected_fixed' %}
+                                            <span class="badge bg-warning text-dark">اصلاح شده - نیاز به بررسی</span>
+                                        {% else %}
+                                            <span class="badge bg-info">تکمیل شده - نیاز به بررسی</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ instance.updated_at|date:"Y/m/d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'form_review:reject_form' instance.id %}" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-x-circle"></i> برگشت
+                                        </a>
+                                        <a href="{% url 'form_flow:form_detail' instance.id %}" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i> مشاهده
+                                        </a>
+                                        <a href="{% url 'form_review:review_history' instance.id %}" class="btn btn-sm btn-secondary">
+                                            <i class="bi bi-clock-history"></i> تاریخچه
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center py-5">
+                    <i class="bi bi-check-circle fs-1"></i>
+                    <p class="mt-3">هیچ فرمی در انتظار بررسی نیست</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

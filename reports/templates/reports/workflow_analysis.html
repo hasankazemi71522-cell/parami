@@ -1,0 +1,48 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">تحلیل</span>
+            <span>گردش کار</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+                    <div class="container-fluid">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>مرحله</th>
+                                        <th>تعداد تکمیل</th>
+                                        <th>میانگین زمان</th>
+                                        <th>تعداد تاخیر</th>
+                                        <th>نرخ تاخیر</th>
+                                        <th>تعداد فیلدها</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for step in step_data %}
+                                        <tr>
+                                            <td><strong>مرحله {{ step.step_number }}</strong></td>
+                                            <td>{{ step.count }}</td>
+                                            <td>{{ step.avg_duration }} ساعت</td>
+                                            <td><span class="badge bg-danger">{{ step.overdue_count }}</span></td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-danger" style="width: {{ step.overdue_rate }}%;">{{ step.overdue_rate }}%</div>
+                                                </div>
+                                            </td>
+                                            <td>{{ step.field_count }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr><td colspan="6" class="text-center">هیچ داده‌ای وجود ندارد</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+{% endblock %}

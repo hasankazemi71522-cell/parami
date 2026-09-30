@@ -1,0 +1,242 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+{% load form_filters %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">فرم‌های</span>
+            <span>من</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- ============ فیلتر ============ -->
+            <form method="get" class="mb-3">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <select class="form-select" name="status">
+                            <option value="">همه</option>
+                            {% for key, value in status_choices %}
+                                <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>
+                                    {{ value }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">فیلتر</button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'form_flow:my_forms' %}" class="btn btn-secondary w-100">پاک کردن</a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'form_flow:available_forms' %}" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> فرم جدید
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- ============ آمار سریع ============ -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body dark_back_color">
+                            <h5 class="card-title">{{ instances|length }}</h5>
+                            <p class="card-text">کل فرم‌ها</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body dark_back_color">
+                            <h5 class="card-title">
+                                {{ instances|filter_by_status:'completed'|length }}
+                            </h5>
+                            <p class="card-text">تکمیل شده</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-warning text-dark">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ instances|filter_by_status:'in_progress'|length }}
+                            </h5>
+                            <p class="card-text">در حال انجام</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-danger text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ instances|filter_by_status:'overdue'|length }}
+                            </h5>
+                            <p class="card-text">تاخیر داشته</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ لیست فرم‌ها ============ -->
+            {% if instances %}
+                <div class="table-responsive dark_back_color">
+                    <table class="table table-striped table-hover dark_back_color">
+                        <thead>
+                            <tr>
+                                <th>عنوان</th>
+                                <th>وضعیت</th>
+                                <th>مرحله فعلی</th>
+                                <th>پیشرفت</th>
+                                <th>مهلت</th>
+                                <th>زمان باقی‌مانده</th>
+                                <th>تاریخ شروع</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for instance in instances %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ instance.custom_name|default:instance.title }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ instance.title }}</small>
+                                        {% if instance.status == 'draft' %}
+                                            <br>
+                                            <span class="badge bg-warning text-dark">پیش‌نویس</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if instance.status == 'draft' %}bg-secondary{% elif instance.status == 'in_progress' %}bg-primary{% elif instance.status == 'waiting' %}bg-warning{% elif instance.status == 'overdue' %}bg-danger{% elif instance.status == 'completed' %}bg-success{% elif instance.status == 'approved' %}bg-info{% elif instance.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ instance.get_status_display }}
+                                        </span>
+                                        {% if instance.status == 'draft' %}
+                                            <br>
+                                            <small class="text-muted text-success">(قابل ویرایش)</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ instance.current_step_number }}
+                                        <small class="text-muted">/ {{ instance.get_max_step }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px; width: 100px;">
+                                            <div class="progress-bar bg-{% if instance.get_progress_percentage == 100 %}success{% elif instance.is_overdue %}danger{% else %}primary{% endif %}"
+                                                 style="width: {{ instance.get_progress_percentage }}%;">
+                                                {{ instance.get_progress_percentage }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if instance.deadline_hours == 0 %}
+                                            <span class="text-muted">بدون محدودیت</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ instance.deadline_hours }} ساعت</span>
+                                            <br>
+                                            <small class="text-muted">({{ instance.deadline_hours|div:24|floatformat:1 }} روز)</small>
+                                            {% if instance.is_overdue %}
+                                                <span class="badge bg-danger d-block mt-1">⚠️ تاخیر</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if instance.deadline_hours == 0 %}
+                                            <span class="text-muted">∞</span>
+                                        {% elif instance.status in 'completed,approved,rejected,canceled' %}
+                                            <span class="text-muted">تکمیل شده</span>
+                                        {% else %}
+                                            {% with remaining=instance.get_remaining_time_display %}
+                                                <span class="badge {% if 'تاخیر' in remaining %}bg-danger{% elif 'ساعت' in remaining and remaining|time_to_hours < 24 %}bg-warning{% else %}bg-info{% endif %}">
+                                                    {{ remaining }}
+                                                </span>
+                                            {% endwith %}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ instance.started_at|date:"Y/m/d H:i" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            {% if instance.status == 'draft' %}
+                                                <a href="{% url 'form_flow:edit_instance_fields' instance.id %}"
+                                                   class="btn btn-warning" title="ویرایش">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'form_flow:delete_form' instance.id %}"
+                                                   class="btn btn-danger"
+                                                   onclick="return confirm('آیا از حذف این فرم مطمئن هستید؟')"
+                                                   title="حذف">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            {% elif instance.status in 'in_progress,waiting,overdue' %}
+                                                <a href="{% url 'form_flow:fill_form' instance.id %}"
+                                                   class="btn btn-primary" title="ادامه تکمیل">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                            {% endif %}
+
+                                            <a href="{% url 'form_flow:form_detail' instance.id %}"
+                                               class="btn btn-info" title="جزئیات">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+
+                                            <a href="{% url 'form_flow:form_history' instance.id %}"
+                                               class="btn btn-secondary" title="تاریخچه">
+                                                <i class="bi bi-clock-history"></i>
+                                            </a>
+
+                                            <a href="{% url 'form_flow:form_pdf' instance.id %}"
+                                               class="btn btn-danger" title="خروجی PDF" target="_blank">
+                                                <i class="bi bi-file-pdf"></i>
+                                            </a>
+
+                                            {% if instance.status != 'draft' and instance.status != 'completed' and instance.status != 'approved' and instance.status != 'rejected' and instance.status != 'canceled' %}
+                                                <a href="{% url 'form_flow:cancel_form' instance.id %}"
+                                                   class="btn btn-secondary"
+                                                   onclick="return confirm('آیا از لغو این فرم مطمئن هستید؟')"
+                                                   title="لغو">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ============ نمایش تعداد ============ -->
+                <div class="mt-3">
+                    <small class="text-muted">
+                        تعداد کل: {{ instances|length }} فرم
+                    </small>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-file-earmark-text" style="font-size: 48px; color: #ccc;"></i>
+                    <p class="text-muted mt-3">شما هیچ فرمی ایجاد نکردید</p>
+                    <a href="{% url 'form_flow:available_forms' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> ایجاد فرم جدید
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+<!-- ============ فیلترهای اضافی برای تمپلیت ============ -->
+{% if False %}
+    <!-- فیلتر filter_by_status برای استفاده در تمپلیت -->
+    <!-- این فیلتر باید در form_filters.py تعریف شود -->
+{% endif %}

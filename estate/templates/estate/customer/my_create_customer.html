@@ -1,0 +1,1082 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">مدیریت</span>
+        <span>مشتریان</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+    <!-- ====== کارت‌های آمار ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.total }}</h5>
+                    <p class="card-text mb-0 small">کل مشتریان</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.confirmed }}</h5>
+                    <p class="card-text mb-0 small">تایید شده ها</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.assigned }}</h5>
+                    <p class="card-text mb-0 small">ارجاع شده ها</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.waiting }}</h5>
+                    <p class="card-text mb-0 small">در انتظار تصمیم</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.deposit }}</h5>
+                    <p class="card-text mb-0 small">بیعانه شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.contract }}</h5>
+                    <p class="card-text mb-0 small">قرارداد شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.cancelled }}</h5>
+                    <p class="card-text mb-0 small">کنسل شده</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== دکمه‌های عملیات ====== -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'estate:customer_create' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> ثبت مشتری جدید
+            </a>
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#searchPanel" id="searchToggleBtn">
+                <i class="fas fa-search"></i> جستجوی پیشرفته
+                {% if has_filters %}
+                    <span class="badge bg-danger ms-1">{{ filter_count }}</span>
+                {% endif %}
+            </button>
+            {% if has_filters %}
+                <a href="{% url 'estate:my_create_customer' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-times"></i> پاک کردن فیلترها
+                </a>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <span class="text-muted small">تعداد: {{ total_count }}</span>
+            <select class="form-select form-select-sm" style="width: auto;" onchange="window.location.href=this.value">
+                <option value="?sort=-priority" {% if sort_by == '-priority' %}selected{% endif %}>مرتب‌سازی</option>
+                <option value="?sort=-priority" {% if sort_by == '-priority' %}selected{% endif %}>⭐ اولویت (بالا)</option>
+                <option value="?sort=priority" {% if sort_by == 'priority' %}selected{% endif %}>⭐ اولویت (پایین)</option>
+                <option value="?sort=-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>جدیدترین</option>
+                <option value="?sort=created_at" {% if sort_by == 'created_at' %}selected{% endif %}>قدیمی‌ترین</option>
+                <option value="?sort=user__first_name" {% if sort_by == 'user__first_name' %}selected{% endif %}>نام (الفبا)</option>
+                <option value="?sort=-user__first_name" {% if sort_by == '-user__first_name' %}selected{% endif %}>نام (الفبا معکوس)</option>
+                <option value="?sort=display_code" {% if sort_by == 'display_code' %}selected{% endif %}>کد مشتری (صعودی)</option>
+                <option value="?sort=-display_code" {% if sort_by == '-display_code' %}selected{% endif %}>کد مشتری (نزولی)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ====== پنل جستجوی پیشرفته ====== -->
+    <div class="collapse mb-3 {% if has_filters %}show{% endif %}" id="searchPanel">
+        <div class="card card-body bg-light p-3">
+            <form method="GET" class="row g-3" id="advancedSearchForm" onsubmit="submitSearchForm(event)">
+
+                <!-- ========================================================== -->
+                <!-- 1. جستجوی عمومی -->
+                <!-- ========================================================== -->
+                <div class="col-12">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-search"></i> جستجوی عمومی</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">کد مشتری</label>
+                    <input type="text" name="display_code" class="form-control" placeholder="مثال: C-00001" value="{{ filter_display_code|default:'' }}">
+                </div>
+                {% if "contact_information_show" in perimissin_list %}
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">جستجو در نام، موبایل، ایمیل</label>
+                    <input type="text" name="search" class="form-control" placeholder="نام، موبایل، ایمیل..." value="{{ filter_search|default:'' }}">
+                </div>
+                {% else %}
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">جستجو در نام، موبایل، ایمیل</label>
+                    <input type="text" name="search" class="form-control" placeholder="نام، موبایل، ایمیل..." value="{{ filter_search|default:'' }}" disabled>
+                </div>
+                {% endif %}
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">نوع مشتری</label>
+                    <select name="customer_type" class="form-select">
+                        <option value="">همه</option>
+                        {% for value, label in customer_types %}
+                            <option value="{{ value }}" {% if filter_customer_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">وضعیت</label>
+                    <select name="status" class="form-select">
+                        {% if "show_all_customer_property" in perimissin_list %}
+                            <option value="">همه</option>
+                            {% for value, label in statuses %}
+                                <option value="{{ value }}" {% if filter_status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="confirmed">تایید شده ها</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 2. انواع کاربری مورد نظر -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-layer-group"></i> انواع کاربری مورد نظر</h6>
+                    <small class="text-muted">کاربری سندی و کاربردهای فرعی که مشتری به آنها علاقه دارد</small>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">کاربری سندی (اصلی)</label>
+                    <select name="primary_usage" class="form-select">
+                        <option value="">همه</option>
+                        {% for usage in usage_types %}
+                            <option value="{{ usage.id }}" {% if filter_primary_usage == usage.id|stringformat:"s" %}selected{% endif %}>
+                                {{ usage.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <div class="border p-2 rounded bg-white">
+                        <label class="form-label small fw-bold">کاربردهای فرعی (چندگزینه‌ای)</label>
+                        <div class="row g-1">
+                            {% for usage in usage_types %}
+                                <div class="col-md-2 col-sm-3 col-4">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="preferred_usage_types"
+                                               value="{{ usage.id }}"
+                                               class="form-check-input"
+                                               id="search_usage_{{ usage.id }}"
+                                               {% if usage.id|stringformat:"s" in filter_preferred_usage_types %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_usage_{{ usage.id }}">
+                                            <span class="badge me-1" style="background-color: {{ usage.color|default:'#6c757d' }}; padding: 2px 6px;">
+                                                <i class="fas {{ usage.icon|default:'fa-tag' }}"></i>
+                                            </span>
+                                            {{ usage.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="col-12">
+                                    <div class="alert alert-warning small">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        هیچ نوع کاربری در سیستم تعریف نشده است.
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 3. مکان -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-map-marker-alt"></i> مکان</h6>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">استان</label>
+                    <select name="province" class="form-select" id="searchProvince" onchange="loadSearchCities()">
+                        <option value="">همه</option>
+                        {% for province in provinces %}
+                            <option value="{{ province.id }}" {% if filter_province == province.id|stringformat:"s" %}selected{% endif %}>
+                                {{ province.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">شهرستان</label>
+                    <select name="city" class="form-select" id="searchCity" onchange="loadSearchNeighborhoods()">
+                        <option value="">همه</option>
+                        {% if filter_city %}
+                            <option value="{{ filter_city }}" selected>{{ filter_city_name }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">محله</label>
+                    <select name="neighborhood" class="form-select" id="searchNeighborhood">
+                        <option value="">همه</option>
+                        {% if filter_neighborhood %}
+                            <option value="{{ filter_neighborhood }}" selected>{{ filter_neighborhood_name }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 4. بودجه خرید -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-money-bill"></i> بودجه خرید (تومان)</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل بودجه</label>
+                    <input type="text" name="budget_min" class="form-control money-input" placeholder="حداقل" value="{{ filter_budget_min }}" oninput="formatMoneyDisplay(this)">
+                    <small class="text-muted money-display" id="budget_min_search_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر بودجه</label>
+                    <input type="text" name="budget_max" class="form-control money-input" placeholder="حداکثر" value="{{ filter_budget_max }}" oninput="formatMoneyDisplay(this)">
+                    <small class="text-muted money-display" id="budget_max_search_display"></small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">&nbsp;</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setBudgetRange('buyer')">
+                            <i class="fas fa-arrow-right"></i> تا ۵۰۰ میلیون
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setBudgetRange('buyer_mid')">
+                            <i class="fas fa-arrow-right"></i> ۵۰۰M - ۱B
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setBudgetRange('buyer_high')">
+                            <i class="fas fa-arrow-right"></i> بیش از ۱ میلیارد
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 5. بودجه اجاره و رهن -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-home"></i> بودجه اجاره و رهن (تومان)</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل اجاره</label>
+                    <input type="text" name="rent_min" class="form-control money-input" placeholder="حداقل" value="{{ filter_rent_min }}" oninput="formatMoneyDisplay(this)">
+                    <small class="text-muted money-display" id="rent_min_search_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر اجاره</label>
+                    <input type="text" name="rent_max" class="form-control money-input" placeholder="حداکثر" value="{{ filter_rent_max }}" oninput="formatMoneyDisplay(this)">
+                    <small class="text-muted money-display" id="rent_max_search_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل رهن</label>
+                    <input type="text" name="mortgage_min" class="form-control money-input" placeholder="حداقل" value="{{ filter_mortgage_min }}" oninput="formatMoneyDisplay(this)">
+                    <small class="text-muted money-display" id="mortgage_min_search_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر رهن</label>
+                    <input type="text" name="mortgage_max" class="form-control money-input" placeholder="حداکثر" value="{{ filter_mortgage_max }}" oninput="formatMoneyDisplay(this)">
+                    <small class="text-muted money-display" id="mortgage_max_search_display"></small>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 6. مشخصات فنی ملک -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-ruler-combined"></i> مشخصات فنی ملک</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل متراژ (m²)</label>
+                    <input type="number" name="min_area" class="form-control" placeholder="حداقل" value="{{ filter_min_area }}" step="0.1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر متراژ (m²)</label>
+                    <input type="number" name="max_area" class="form-control" placeholder="حداکثر" value="{{ filter_max_area }}" step="0.1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل اتاق</label>
+                    <input type="number" name="min_rooms" class="form-control" placeholder="حداقل" value="{{ filter_min_rooms }}" min="0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر اتاق</label>
+                    <input type="number" name="max_rooms" class="form-control" placeholder="حداکثر" value="{{ filter_max_rooms }}" min="0">
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 7. مشخصات ساختمانی (طبقه، تعداد طبقات، واحد در طبقه، دانگ) -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-building"></i> مشخصات ساختمانی</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل طبقه</label>
+                    <input type="number" name="preferred_min_floor" class="form-control" placeholder="حداقل" value="{{ filter_preferred_min_floor }}" min="0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر طبقه</label>
+                    <input type="number" name="preferred_max_floor" class="form-control" placeholder="حداکثر" value="{{ filter_preferred_max_floor }}" min="0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل تعداد طبقات</label>
+                    <input type="number" name="preferred_min_total_floors" class="form-control" placeholder="حداقل" value="{{ filter_preferred_min_total_floors }}" min="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر تعداد طبقات</label>
+                    <input type="number" name="preferred_max_total_floors" class="form-control" placeholder="حداکثر" value="{{ filter_preferred_max_total_floors }}" min="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل واحد در طبقه</label>
+                    <input type="number" name="preferred_min_units_per_floor" class="form-control" placeholder="حداقل" value="{{ filter_preferred_min_units_per_floor }}" min="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر واحد در طبقه</label>
+                    <input type="number" name="preferred_max_units_per_floor" class="form-control" placeholder="حداکثر" value="{{ filter_preferred_max_units_per_floor }}" min="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل دانگ (۱ تا ۶)</label>
+                    <input type="number" name="preferred_dong_min" class="form-control" placeholder="حداقل" value="{{ filter_preferred_dong_min }}" min="1" max="6">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر دانگ (۱ تا ۶)</label>
+                    <input type="number" name="preferred_dong_max" class="form-control" placeholder="حداکثر" value="{{ filter_preferred_dong_max }}" min="1" max="6">
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 8. انواع ملک مورد نظر (چک‌باکس با کادر) -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-building"></i> انواع ملک مورد نظر</h6>
+                </div>
+                <div class="col-12">
+                    <div class="border p-2 rounded bg-white">
+                        <div class="row g-1">
+                            {% for property_type in property_types %}
+                                <div class="col-md-2 col-sm-3 col-4">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="property_types"
+                                               value="{{ property_type.id }}"
+                                               class="form-check-input"
+                                               id="search_prop_{{ property_type.id }}"
+                                               {% if property_type.id|stringformat:"s" in filter_property_types %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_prop_{{ property_type.id }}">
+                                            {{ property_type.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 9. نیازهای خاص (چک‌باکس با کادر) -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-check-circle"></i> نیازهای خاص</h6>
+                    <small class="text-muted">امکاناتی که مشتری در ملک مورد نظر خود می‌خواهد</small>
+                </div>
+                <div class="col-12">
+                    <div class="border p-2 rounded bg-white">
+                        <div class="row g-1">
+                            {% for requirement in requirements %}
+                                <div class="col-md-2 col-sm-3 col-4">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="requirements"
+                                               value="{{ requirement.id }}"
+                                               class="form-check-input"
+                                               id="search_req_{{ requirement.id }}"
+                                               {% if requirement.id|stringformat:"s" in filter_requirements %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_req_{{ requirement.id }}">
+                                            {% if requirement.icon %}
+                                                <i class="{{ requirement.icon }}"></i>
+                                            {% endif %}
+                                            {{ requirement.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 10. جهت‌ها و وضعیت واحد (چک‌باکس با کادر) -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-compass"></i> جهت‌ها و وضعیت واحد</h6>
+                </div>
+                <div class="col-md-4">
+                    <div class="border p-2 rounded bg-white">
+                        <label class="form-label small fw-bold">جهت ساختمان (چندگزینه‌ای)</label>
+                        <div class="row g-1">
+                            {% for orientation in orientations %}
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="preferred_building_orientations"
+                                               value="{{ orientation.id }}"
+                                               class="form-check-input"
+                                               id="search_build_ori_{{ orientation.id }}"
+                                               {% if orientation.id|stringformat:"s" in filter_preferred_building_orientations %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_build_ori_{{ orientation.id }}">
+                                            {{ orientation.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border p-2 rounded bg-white">
+                        <label class="form-label small fw-bold">جهت واحد (چندگزینه‌ای)</label>
+                        <div class="row g-1">
+                            {% for orientation in orientations %}
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="preferred_unit_orientations"
+                                               value="{{ orientation.id }}"
+                                               class="form-check-input"
+                                               id="search_unit_ori_{{ orientation.id }}"
+                                               {% if orientation.id|stringformat:"s" in filter_preferred_unit_orientations %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_unit_ori_{{ orientation.id }}">
+                                            {{ orientation.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border p-2 rounded bg-white">
+                        <label class="form-label small fw-bold">وضعیت واحد (چندگزینه‌ای)</label>
+                        <div class="row g-1">
+                            {% for condition in unit_conditions %}
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="preferred_unit_conditions"
+                                               value="{{ condition.id }}"
+                                               class="form-check-input"
+                                               id="search_cond_{{ condition.id }}"
+                                               {% if condition.id|stringformat:"s" in filter_preferred_unit_conditions %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_cond_{{ condition.id }}">
+                                            {{ condition.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 11. وضعیت سند و پایان کار (چک‌باکس با کادر) -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-file-alt"></i> وضعیت سند و پایان کار</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">نیاز به پایان کار</label>
+                    <select name="need_completion_certificate" class="form-select">
+                        <option value="">همه</option>
+                        <option value="1" {% if filter_need_completion_certificate == '1' %}selected{% endif %}>دارد</option>
+                        <option value="0" {% if filter_need_completion_certificate == '0' %}selected{% endif %}>ندارد</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">نیاز به سند</label>
+                    <select name="need_document" class="form-select">
+                        <option value="">همه</option>
+                        <option value="1" {% if filter_need_document == '1' %}selected{% endif %}>دارد</option>
+                        <option value="0" {% if filter_need_document == '0' %}selected{% endif %}>ندارد</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="border p-2 rounded bg-white">
+                        <label class="form-label small fw-bold">انواع سند (چندگزینه‌ای)</label>
+                        <div class="row g-1">
+                            {% for doc_type in document_types %}
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="preferred_document_types"
+                                               value="{{ doc_type.id }}"
+                                               class="form-check-input"
+                                               id="search_doc_{{ doc_type.id }}"
+                                               {% if doc_type.id|stringformat:"s" in filter_preferred_document_types %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_doc_{{ doc_type.id }}">
+                                            {{ doc_type.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border p-2 rounded bg-white">
+                        <label class="form-label small fw-bold">انواع مالکیت سند (چندگزینه‌ای)</label>
+                        <div class="row g-1">
+                            {% for own_doc in ownership_document_types %}
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="preferred_ownership_document_types"
+                                               value="{{ own_doc.id }}"
+                                               class="form-check-input"
+                                               id="search_own_doc_{{ own_doc.id }}"
+                                               {% if own_doc.id|stringformat:"s" in filter_preferred_ownership_document_types %}checked{% endif %}>
+                                        <label class="form-check-label small" for="search_own_doc_{{ own_doc.id }}">
+                                            {{ own_doc.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- 12. سایر فیلترها -->
+                <!-- ========================================================== -->
+                <div class="col-12 mt-2">
+                    <h6 class="border-bottom pb-2"><i class="fas fa-sliders-h"></i> سایر فیلترها</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">منبع</label>
+                    <select name="source" class="form-select">
+                        <option value="">همه</option>
+                        {% for source in sources %}
+                            <option value="{{ source.id }}" {% if filter_source == source.id|stringformat:"s" %}selected{% endif %}>{{ source.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداقل اولویت</label>
+                    <input type="number" name="priority_min" class="form-control" placeholder="از ۰" value="{{ filter_priority_min }}" min="0" max="10">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">حداکثر اولویت</label>
+                    <input type="number" name="priority_max" class="form-control" placeholder="تا ۱۰" value="{{ filter_priority_max }}" min="0" max="10">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">وضعیت فعال</label>
+                    <select name="is_active" class="form-select">
+                        <option value="">همه</option>
+                        <option value="1" {% if filter_is_active == '1' %}selected{% endif %}>فعال</option>
+                        <option value="0" {% if filter_is_active == '0' %}selected{% endif %}>غیرفعال</option>
+                    </select>
+                </div>
+
+                <!-- ====== دکمه‌های جستجو ====== -->
+                <div class="col-12 mt-3">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> جستجو
+                        </button>
+                        <button type="reset" class="btn btn-secondary" onclick="resetSearchForm()">
+                            <i class="fas fa-undo"></i> بازنشانی
+                        </button>
+                        <a href="{% url 'estate:customer_list' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-times"></i> پاک کردن همه فیلترها
+                        </a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== جدول مشتریان ====== -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover text-center">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>کد مشتری</th>
+                    <th>نام و نام خانوادگی</th>
+                    <th>موبایل</th>
+                    <th>نوع</th>
+                    <th>وضعیت</th>
+                    <th>کاربری سندی</th>
+                    <th>کاربری‌های فرعی</th>
+                    <th>منبع</th>
+                    <th>بودجه</th>
+                    <th>اولویت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ forloop.counter0|add:customers.start_index }}</td>
+                    <td>
+                        <span class="badge bg-secondary" style="font-size: 0.85rem; font-weight: 500; direction: ltr;">
+                            {{ customer.display_code|default:"-" }}
+                        </span>
+                    </td>
+                    {% if "contact_information_show" in perimissin_list %}
+                        <td>
+                            <a href="{% url 'estate:customer_detail' customer.id %}" class="text-decoration-none fw-bold">
+                                {{ customer.full_name }}
+                            </a>
+                        </td>
+                        <td dir="ltr">{{ customer.mobile }}</td>
+                        <td>
+                            <span class="badge bg-{% if customer.customer_type == 'buyer' %}success{% elif customer.customer_type == 'tenant' %}info{% elif customer.customer_type == 'developer' %}warning{% elif customer.customer_type == 'investor' %}purple{% else %}secondary{% endif %}">
+                                {{ customer.get_customer_type_display }}
+                            </span>
+                        </td>
+                    {% else %}
+                        <td>
+                            <a href="" class="text-decoration-none fw-bold">
+                                عدم دسترسی
+                            </a>
+                        </td>
+                        <td dir="ltr">عدم دسترسی</td>
+                        <td>
+                            <span class="badge bg-{% if customer.customer_type == 'buyer' %}success{% elif customer.customer_type == 'tenant' %}info{% elif customer.customer_type == 'developer' %}warning{% elif customer.customer_type == 'investor' %}purple{% else %}secondary{% endif %}">
+                                {{ customer.get_customer_type_display }}
+                            </span>
+                        </td>
+                    {% endif %}
+                    <td>
+                        <span class="badge bg-{% if customer.status == 'new' %}info{% elif customer.status == 'confirmed' %}success{% elif customer.status == 'assigned' %}primary{% elif customer.status == 'waiting' %}orange{% elif customer.status == 'deposit' %}warning{% elif customer.status == 'in_meeting' %}purple{% elif customer.status == 'contract' %}teal{% elif customer.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                            {{ customer.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if customer.primary_usage %}
+                            <span class="badge" style="background-color: {{ customer.primary_usage.color|default:'#6c757d' }}; font-size: 0.7rem;">
+                                <i class="fas {{ customer.primary_usage.icon|default:'fa-star' }}"></i>
+                                {{ customer.primary_usage.name }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if customer.preferred_usage_types.exists %}
+                            <div class="d-flex flex-wrap gap-1 justify-content-center">
+                                {% for usage in customer.preferred_usage_types.all|slice:":2" %}
+                                    <span class="badge" style="background-color: {{ usage.color|default:'#6c757d' }}; font-size: 0.65rem;">
+                                        <i class="fas {{ usage.icon|default:'fa-tag' }}"></i>
+                                        {{ usage.name }}
+                                    </span>
+                                {% endfor %}
+                                {% if customer.preferred_usage_types.count > 2 %}
+                                    <span class="badge bg-secondary" style="font-size: 0.6rem;">
+                                        +{{ customer.preferred_usage_types.count|add:"-2" }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if customer.source %}
+                            <span class="badge" style="background-color: {{ customer.source.color }}; color: white; font-size: 0.7rem;">
+                                <i class="{{ customer.source.icon }}"></i> {{ customer.source.name }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if customer.budget_min or customer.budget_max %}
+                            <span class="small">{{ customer.get_budget_display }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if customer.priority > 0 %}
+                            <span class="text-warning">{% for i in "x"|rjust:customer.priority %}⭐{% endfor %}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'estate:customer_detail' customer.id %}" class="btn btn-info text-white" title="جزئیات">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if "admin" in request.user.get_role_names or "callcenter" in request.user.get_role_names %}
+                                <a href="{% url 'estate:customer_edit' customer.id %}" class="btn btn-warning" title="ویرایش">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if customer.is_active %}
+                                    <a href="{% url 'estate:customer_delete' customer.id %}" class="btn btn-danger" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'estate:customer_restore' customer.id %}" class="btn btn-success" title="بازیابی">
+                                        <i class="fas fa-undo"></i>
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted d-block mb-3"></i>
+                        <p class="text-muted">هیچ مشتری یافت نشد</p>
+                        <a href="{% url 'estate:customer_create' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> ثبت اولین مشتری
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ====== صفحه‌بندی ====== -->
+    {% if customers.has_other_pages %}
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+            {% if customers.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ customers.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in customers.paginator.page_range %}
+            <li class="page-item {% if customers.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+
+            {% if customers.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ customers.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+    .bg-purple { background-color: #6f42c1; }
+    .bg-orange { background-color: #fd7e14; }
+    .bg-teal { background-color: #20c997; }
+    .money-display {
+        direction: ltr;
+        font-weight: bold;
+        color: #28a745;
+        font-size: 0.8rem;
+    }
+    #searchPanel .form-check {
+        padding: 2px 0;
+        margin: 0;
+    }
+    #searchPanel .form-check-label {
+        font-size: 0.82rem;
+        padding-right: 2px;
+    }
+    #searchPanel .form-check-input {
+        margin-top: 3px;
+    }
+    #searchPanel .row.g-1 {
+        --bs-gutter-x: 0.25rem;
+        --bs-gutter-y: 0.25rem;
+    }
+    .badge-usage-mini {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 500;
+        margin: 1px;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    /* کادر سفید برای چک‌باکس‌ها */
+    #searchPanel .border {
+        border-color: #dee2e6 !important;
+    }
+    #searchPanel .bg-white {
+        background-color: #fff !important;
+    }
+</style>
+
+<script>
+    // ============================================================
+    // 1. فرمت نمایشی اعداد در جستجو
+    // ============================================================
+
+    function formatMoneyDisplay(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        input.value = value;
+        const displayId = input.id + '_display';
+        const display = document.getElementById(displayId);
+        if (display) {
+            if (value && value.length > 0) {
+                let number = parseInt(value);
+                let formatted = new Intl.NumberFormat('fa-IR').format(number);
+                display.textContent = '💰 ' + formatted + ' تومان';
+            } else {
+                display.textContent = '';
+            }
+        }
+    }
+
+    document.querySelectorAll('#searchPanel .money-input').forEach(function(input) {
+        if (input.value) {
+            let num = input.value.replace(/[^0-9]/g, '');
+            input.value = num;
+            const displayId = input.id + '_display';
+            const display = document.getElementById(displayId);
+            if (display && num) {
+                display.textContent = '💰 ' + new Intl.NumberFormat('fa-IR').format(parseInt(num)) + ' تومان';
+            }
+        }
+        input.addEventListener('input', function() {
+            formatMoneyDisplay(this);
+        });
+    });
+
+    // ============================================================
+    // 2. تنظیم بازه بودجه با دکمه‌های سریع
+    // ============================================================
+
+    function setBudgetRange(type) {
+        const budgetMin = document.querySelector('input[name="budget_min"]');
+        const budgetMax = document.querySelector('input[name="budget_max"]');
+
+        if (type === 'buyer') {
+            budgetMin.value = '0';
+            budgetMax.value = '500000000';
+        } else if (type === 'buyer_mid') {
+            budgetMin.value = '500000000';
+            budgetMax.value = '1000000000';
+        } else if (type === 'buyer_high') {
+            budgetMin.value = '1000000000';
+            budgetMax.value = '';
+        }
+
+        formatMoneyDisplay(budgetMin);
+        formatMoneyDisplay(budgetMax);
+    }
+
+    // ============================================================
+    // 3. بارگذاری شهرستان‌ها بر اساس استان در جستجو
+    // ============================================================
+
+    function loadSearchCities() {
+        const provinceId = document.getElementById('searchProvince').value;
+        const citySelect = document.getElementById('searchCity');
+        const neighborhoodSelect = document.getElementById('searchNeighborhood');
+
+        if (!provinceId) {
+            citySelect.innerHTML = '<option value="">همه</option>';
+            citySelect.disabled = false;
+            neighborhoodSelect.innerHTML = '<option value="">همه</option>';
+            return;
+        }
+
+        citySelect.innerHTML = '<option value="">⏳ در حال بارگذاری...</option>';
+        citySelect.disabled = true;
+
+        fetch(`/estate/api/cities-by-province/?province_id=${provinceId}`)
+            .then(response => response.json())
+            .then(data => {
+                citySelect.innerHTML = '<option value="">همه</option>';
+                citySelect.disabled = false;
+
+                if (data.success && data.cities) {
+                    data.cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.id;
+                        option.textContent = city.name;
+                        citySelect.appendChild(option);
+                    });
+                }
+
+                neighborhoodSelect.innerHTML = '<option value="">همه</option>';
+            })
+            .catch(error => {
+                console.error('خطا:', error);
+                citySelect.innerHTML = '<option value="">❌ خطا</option>';
+                citySelect.disabled = false;
+            });
+    }
+
+    // ============================================================
+    // 4. بارگذاری محله‌ها بر اساس شهرستان در جستجو
+    // ============================================================
+
+    function loadSearchNeighborhoods() {
+        const cityId = document.getElementById('searchCity').value;
+        const neighborhoodSelect = document.getElementById('searchNeighborhood');
+
+        if (!cityId) {
+            neighborhoodSelect.innerHTML = '<option value="">همه</option>';
+            return;
+        }
+
+        neighborhoodSelect.innerHTML = '<option value="">⏳ در حال بارگذاری...</option>';
+
+        fetch(`/estate/api/neighborhoods-by-city/?city_id=${cityId}`)
+            .then(response => response.json())
+            .then(data => {
+                neighborhoodSelect.innerHTML = '<option value="">همه</option>';
+                if (data.success && data.neighborhoods) {
+                    data.neighborhoods.forEach(neighborhood => {
+                        const option = document.createElement('option');
+                        option.value = neighborhood.id;
+                        option.textContent = neighborhood.name;
+                        neighborhoodSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('خطا:', error);
+                neighborhoodSelect.innerHTML = '<option value="">❌ خطا</option>';
+            });
+    }
+
+    // ============================================================
+    // 5. ارسال فرم و بستن کادر جستجو
+    // ============================================================
+
+    function submitSearchForm(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('advancedSearchForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+
+        // تابع کمکی برای اضافه کردن پارامترها
+        const addParam = (key, value) => {
+            if (value && value.length > 0) {
+                if (Array.isArray(value)) {
+                    value.forEach(v => params.append(key, v));
+                } else {
+                    params.append(key, value);
+                }
+            }
+        };
+
+        // مجموعه‌های چندگزینه‌ای
+        const multiSelectFields = [
+            'property_types', 'requirements',
+            'preferred_usage_types',
+            'preferred_building_orientations',
+            'preferred_unit_orientations',
+            'preferred_unit_conditions',
+            'preferred_document_types',
+            'preferred_ownership_document_types'
+        ];
+
+        // پارامترهای تکی (شامل display_code)
+        const singleFields = [
+            'display_code', 'search', 'customer_type', 'status', 'primary_usage',
+            'province', 'city', 'neighborhood',
+            'budget_min', 'budget_max', 'rent_min', 'rent_max',
+            'mortgage_min', 'mortgage_max',
+            'min_area', 'max_area', 'min_rooms', 'max_rooms',
+            'preferred_min_floor', 'preferred_max_floor',
+            'preferred_min_total_floors', 'preferred_max_total_floors',
+            'preferred_min_units_per_floor', 'preferred_max_units_per_floor',
+            'preferred_dong_min', 'preferred_dong_max',
+            'need_completion_certificate', 'need_document',
+            'source', 'priority_min', 'priority_max', 'is_active'
+        ];
+
+        // پردازش تمام ورودی‌ها
+        for (let [key, value] of formData.entries()) {
+            if (multiSelectFields.includes(key)) {
+                if (value) {
+                    params.append(key, value);
+                }
+            } else if (singleFields.includes(key)) {
+                if (value && value.length > 0) {
+                    params.set(key, value);
+                }
+            }
+        }
+
+        // اضافه کردن مرتب‌سازی فعلی
+        const currentSort = new URLSearchParams(window.location.search).get('sort');
+        if (currentSort) {
+            params.set('sort', currentSort);
+        }
+
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+
+    // ============================================================
+    // 6. بازنشانی فرم جستجو
+    // ============================================================
+
+    function resetSearchForm() {
+        const form = document.getElementById('advancedSearchForm');
+        form.reset();
+        document.querySelectorAll('#searchPanel .money-display').forEach(function(el) {
+            el.textContent = '';
+        });
+        const provinceSelect = document.getElementById('searchProvince');
+        if (provinceSelect) {
+            provinceSelect.value = '';
+            loadSearchCities();
+        }
+        // حذف پارامترهای جستجو با رفتن به صفحه اصلی لیست
+        window.location.href = window.location.pathname;
+    }
+
+    // ============================================================
+    // 7. مقداردهی اولیه برای جستجو
+    // ============================================================
+
+    {% if filter_province %}
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSearchCities();
+            {% if filter_city %}
+                setTimeout(function() {
+                    const citySelect = document.getElementById('searchCity');
+                    if (citySelect) {
+                        citySelect.value = '{{ filter_city }}';
+                        loadSearchNeighborhoods();
+                    }
+                }, 500);
+            {% endif %}
+        });
+    {% endif %}
+</script>
+{% endblock %}

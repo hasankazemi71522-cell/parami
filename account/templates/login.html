@@ -1,0 +1,696 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="FA-IR" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود با پیامک | پارمی - سیستم مدیریت املاک هوشمند</title>
+
+    <!-- فونت و آیکون‌ها -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'index/plugin/swiper/swiper-bundle.min.css' %}">
+    <link rel="stylesheet" href="{% static 'index/plugin/go-to-top/style.css' %}">
+    <link rel="stylesheet" href="{% static 'index/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'index/css/responsive.css' %}">
+
+    <style>
+        /* ============================================================
+           استایل‌های صفحه ورود با پیامک پارمی
+           ============================================================ */
+        :root {
+            --primary-purple: #6C2BD9;
+            --primary-purple-dark: #5A1FB5;
+            --primary-purple-light: #EDE4FF;
+            --gold: #FFD700;
+            --gold-light: #FFF8E0;
+            --teal: #00D4AA;
+            --teal-light: #E0FFF7;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            direction: rtl;
+            text-align: right;
+            background: #F8F7FC;
+            min-height: 100vh;
+        }
+
+        body.dark-theme {
+            background: #0A0A1A;
+        }
+
+        .bg-auth {
+            background: linear-gradient(135deg, #F8F7FC 0%, #EDE4FF 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+        body.dark-theme .bg-auth {
+            background: linear-gradient(135deg, #0A0A1A 0%, #1A0A3A 100%);
+        }
+
+        .auth-form {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 32px 28px !important;
+            box-shadow: 0 20px 60px rgba(108, 43, 217, 0.08);
+            border: 1px solid #E8E4F0;
+            transition: all 0.3s ease;
+            max-width: 480px;
+            width: 100%;
+        }
+        body.dark-theme .auth-form {
+            background: rgba(20, 20, 45, 0.85);
+            backdrop-filter: blur(20px);
+            border-color: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-form .logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .auth-form .logo-wrapper img {
+            height: 50px;
+            width: auto;
+        }
+        .auth-form .logo-wrapper .brand-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        body.dark-theme .auth-form .logo-wrapper .brand-name {
+            background: linear-gradient(135deg, #8B5CF6, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-form .form-title {
+            text-align: center;
+            color: #1A1A2E;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        body.dark-theme .auth-form .form-title {
+            color: #F1F5F9;
+        }
+
+        .auth-form .form-title .highlight {
+            color: #6C2BD9;
+        }
+        body.dark-theme .auth-form .form-title .highlight {
+            color: #8B5CF6;
+        }
+        .auth-form .form-title .sub {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: #8888AA;
+            margin-top: 2px;
+        }
+        body.dark-theme .auth-form .form-title .sub {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .comment-item {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .comment-item .form-control {
+            width: 100%;
+            padding: 14px 14px 4px 14px;
+            font-size: 14px;
+            border: 2px solid #E8E4F0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background-color: transparent;
+            direction: rtl;
+            color: #1A1A2E;
+            height: 52px;
+        }
+        body.dark-theme .comment-item .form-control {
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #F1F5F9;
+            background-color: transparent;
+        }
+        .comment-item .form-control:focus {
+            outline: none;
+            border-color: #6C2BD9;
+            box-shadow: 0 0 0 4px rgba(108, 43, 217, 0.1);
+        }
+        body.dark-theme .comment-item .form-control:focus {
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 4px rgba(108, 43, 217, 0.15);
+        }
+        .comment-item .form-control::placeholder {
+            opacity: 0;
+        }
+        .comment-item .form-control[dir="ltr"] {
+            text-align: left;
+        }
+        .comment-item .form-control[dir="ltr"] + .form-label.label-float {
+            right: 14px;
+            text-align: right;
+        }
+
+        .comment-item .form-label.label-float {
+            position: absolute;
+            right: 14px;
+            top: 15px;
+            font-size: 14px;
+            color: #8888AA;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            background-color: transparent;
+            padding: 0 4px;
+            margin: 0;
+            font-weight: 500;
+        }
+        body.dark-theme .comment-item .form-label.label-float {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .comment-item .form-control:focus + .form-label.label-float,
+        .comment-item .form-control:not(:placeholder-shown) + .form-label.label-float {
+            top: -8px;
+            right: 10px;
+            font-size: 11px;
+            color: #6C2BD9;
+            background-color: #FFFFFF;
+            padding: 0 6px;
+            font-weight: 600;
+        }
+        body.dark-theme .comment-item .form-control:focus + .form-label.label-float,
+        body.dark-theme .comment-item .form-control:not(:placeholder-shown) + .form-label.label-float {
+            background-color: rgba(20, 20, 45, 0.85);
+            color: #8B5CF6;
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(108, 43, 217, 0.2);
+        }
+        .btn-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(108, 43, 217, 0.3);
+            color: white;
+        }
+        .btn-main:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1A1A2E;
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+        }
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.3);
+            color: #1A1A2E;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .success-message {
+            color: #00b894;
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .info-message {
+            color: #6C2BD9;
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        body.dark-theme .info-message {
+            color: #8B5CF6;
+        }
+
+        .auth-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        .auth-link {
+            color: #6C2BD9;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            font-size: 13px;
+        }
+        .auth-link:hover {
+            color: #5A1FB5;
+            text-decoration: underline;
+        }
+        body.dark-theme .auth-link {
+            color: #8B5CF6;
+        }
+        body.dark-theme .auth-link:hover {
+            color: #C4A0FF;
+        }
+
+        .auth-divider {
+            color: #8888AA;
+            font-size: 13px;
+        }
+        body.dark-theme .auth-divider {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .terms-text {
+            font-size: 12px;
+            color: #8888AA;
+            text-align: center;
+            margin-top: 16px;
+        }
+        body.dark-theme .terms-text {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .terms-text a {
+            color: #6C2BD9;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+        body.dark-theme .terms-text a {
+            color: #8B5CF6;
+        }
+
+        .resend-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-top: 4px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .resend-section .resend-link {
+            color: #6C2BD9;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .resend-section .resend-link:hover {
+            text-decoration: underline;
+        }
+        body.dark-theme .resend-section .resend-link {
+            color: #8B5CF6;
+        }
+        .resend-section .resend-link.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .resend-section .timer {
+            color: #8888AA;
+            font-size: 12px;
+        }
+        body.dark-theme .resend-section .timer {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #E8E4F0;
+        }
+        body.dark-theme .divider::before,
+        body.dark-theme .divider::after {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .divider span {
+            color: #8888AA;
+            font-size: 12px;
+        }
+        body.dark-theme .divider span {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 576px) {
+            .auth-form {
+                padding: 24px 16px !important;
+                border-radius: 16px;
+            }
+            .auth-form .logo-wrapper img {
+                height: 40px;
+            }
+            .auth-form .logo-wrapper .brand-name {
+                font-size: 1.2rem;
+            }
+            .comment-item .form-control {
+                height: 46px;
+                padding: 12px 12px 4px 12px;
+                font-size: 13px;
+            }
+            .comment-item .form-label.label-float {
+                top: 12px;
+                font-size: 13px;
+                right: 12px;
+            }
+            .btn-main,
+            .btn-gold {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            .auth-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+            .resend-section {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="bg-auth">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-11 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+
+                <div class="auth-form">
+                    <!-- ===== لوگو و برند ===== -->
+                    <a href="{% url 'home_page' %}">
+                        <div class="logo-wrapper">
+                            <img src="{% static 'myassets/myimage/logo/logo.jpeg' %}" alt="پارمی">
+                            <span class="brand-name">پارمی</span>
+                        </div>
+                    </a>
+
+                    <!-- ===== عنوان ===== -->
+                    <div class="form-title" id="form-title">
+                        ورود با <span class="highlight">پیامک</span>
+                        <div class="sub">سریع و امن به پارمی</div>
+                    </div>
+
+                    <!-- ===== فرم ===== -->
+                    <form id="form-auth" class="py-2">
+                        {% csrf_token %}
+
+                        <!-- مرحله ۱: دریافت شماره موبایل -->
+                        <div id="step-mobile">
+                            <div class="comment-item">
+                                <input type="tel" class="form-control" id="mobile_number" dir="ltr" placeholder=" ">
+                                <label for="mobile_number" class="form-label label-float">شماره موبایل</label>
+                            </div>
+                            <div id="mobile-message" class="mb-2"></div>
+                            <div class="text-center">
+                                <button type="button" id="btn-send-code" class="btn-main">
+                                    <i class="bi bi-send me-2"></i> ارسال کد تأیید
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- مرحله ۲: تأیید کد -->
+                        <div id="step-code" style="display: none;">
+                            <div class="comment-item">
+                                <input type="text" class="form-control" id="verify_code" dir="ltr" maxlength="6" placeholder=" ">
+                                <label for="verify_code" class="form-label label-float">کد تأیید</label>
+                            </div>
+                            <div id="code-message" class="mb-2"></div>
+
+                            <div class="resend-section">
+                                <span class="timer" id="timer_display"></span>
+                                <a href="#" id="resend-link" class="resend-link disabled">ارسال مجدد کد</a>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="button" id="btn-verify" class="btn-gold">
+                                    <i class="bi bi-box-arrow-in-left me-2"></i> تأیید و ورود
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ===== لینک‌های کمکی ===== -->
+                        <div class="divider"><span>یا</span></div>
+
+                        <div class="auth-links">
+                            <a href="{% url 'account:login_pass' %}" class="auth-link">
+                                <i class="bi bi-key me-1"></i> ورود با رمز عبور
+                            </a>
+                            <span class="auth-divider">|</span>
+                            <a href="{% url 'account:register' %}" class="auth-link">
+                                <i class="bi bi-person-plus me-1"></i> ثبت نام
+                            </a>
+                        </div>
+
+                    </form>
+
+                    <!-- ===== شرایط و قوانین ===== -->
+                    <div class="terms-text">
+                        با ورود یا ثبت نام در پارمی، شما
+                        <a href="{% url 'rules' %}">شرایط و قوانین</a>
+                        و
+                        <a href="{% url 'privacy' %}">حریم خصوصی</a>
+                        را می‌پذیرید.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+اسکریپت‌ها
+============================================================ -->
+<script src="{% static 'index/js/jquery-3.7.1.min.js' %}"></script>
+<script>
+    var countdownInterval = null;
+    var canResend = true;
+    var mobileNumber = '';
+
+    // ========== ارسال کد تأیید ==========
+    function sendVerificationCode() {
+        var mobile = document.getElementById('mobile_number').value.trim();
+        var messageContainer = document.getElementById('mobile-message');
+
+        if (!mobile) {
+            messageContainer.innerHTML = '<div class="error-message">❌ لطفاً شماره موبایل خود را وارد کنید</div>';
+            return;
+        }
+        if (mobile.length < 11) {
+            messageContainer.innerHTML = '<div class="error-message">❌ شماره موبایل باید ۱۱ رقم باشد</div>';
+            return;
+        }
+
+        messageContainer.innerHTML = '<div class="info-message">⏳ در حال ارسال کد تأیید...</div>';
+        mobileNumber = mobile;
+
+        $.ajax({
+            type: 'GET',
+            url: '{% url "account:login" %}',
+            data: {
+                i: 'send_message',
+                mobile_number: mobile
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data['i'] === 1) {
+                    messageContainer.innerHTML = '<div class="success-message">✅ ' + (data['msg'] || 'کد تأیید ارسال شد') + '</div>';
+                    document.getElementById('step-mobile').style.display = 'none';
+                    document.getElementById('step-code').style.display = 'block';
+                    document.getElementById('form-title').innerHTML = '🔐 تأیید کد پیامک';
+                    startResendTimer(90);
+                } else if (data['i'] === 2) {
+                    messageContainer.innerHTML = '<div class="error-message">❌ ' + (data['msg'] || 'خطا در ارسال کد') + '</div>';
+                } else {
+                    messageContainer.innerHTML = '<div class="error-message">❌ خطا در ارتباط با سرور</div>';
+                }
+            },
+            error: function() {
+                messageContainer.innerHTML = '<div class="error-message">❌ خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.</div>';
+            }
+        });
+    }
+
+    // ========== تایمر ارسال مجدد ==========
+    function startResendTimer(seconds) {
+        canResend = false;
+        var timerDisplay = document.getElementById('timer_display');
+        var resendLink = document.getElementById('resend-link');
+
+        resendLink.classList.add('disabled');
+        timerDisplay.textContent = '⏳ ' + seconds + ' ثانیه';
+
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        var remaining = seconds;
+        countdownInterval = setInterval(function() {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                canResend = true;
+                resendLink.classList.remove('disabled');
+                timerDisplay.textContent = '';
+                resendLink.textContent = '🔁 ارسال مجدد کد';
+            } else {
+                timerDisplay.textContent = '⏳ ' + remaining + ' ثانیه';
+                resendLink.textContent = 'ارسال مجدد';
+            }
+        }, 1000);
+    }
+
+    // ========== ارسال مجدد کد ==========
+    function resendCode() {
+        if (!canResend) {
+            alert('لطفاً چند ثانیه دیگر صبر کنید');
+            return;
+        }
+        if (!mobileNumber) {
+            alert('شماره موبایل یافت نشد');
+            return;
+        }
+
+        document.getElementById('code-message').innerHTML = '<div class="info-message">⏳ ارسال مجدد کد...</div>';
+
+        $.ajax({
+            type: 'GET',
+            url: '{% url "account:login" %}',
+            data: {
+                i: 'send_message',
+                mobile_number: mobileNumber
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data['i'] === 1) {
+                    document.getElementById('code-message').innerHTML = '<div class="success-message">✅ کد مجدداً ارسال شد</div>';
+                    startResendTimer(90);
+                } else {
+                    document.getElementById('code-message').innerHTML = '<div class="error-message">❌ ' + (data['msg'] || 'خطا در ارسال مجدد') + '</div>';
+                }
+            },
+            error: function() {
+                document.getElementById('code-message').innerHTML = '<div class="error-message">❌ خطا در ارتباط با سرور</div>';
+            }
+        });
+    }
+
+    // ========== تأیید کد و ورود ==========
+    function verifyAndLogin() {
+        var code = document.getElementById('verify_code').value.trim();
+        var messageContainer = document.getElementById('code-message');
+
+        if (!code) {
+            messageContainer.innerHTML = '<div class="error-message">❌ لطفاً کد تأیید را وارد کنید</div>';
+            return;
+        }
+        if (code.length < 4) {
+            messageContainer.innerHTML = '<div class="error-message">❌ کد تأیید معتبر نیست (حداقل ۴ رقم)</div>';
+            return;
+        }
+
+        messageContainer.innerHTML = '<div class="info-message">⏳ در حال بررسی کد...</div>';
+
+        $.ajax({
+            type: 'GET',
+            url: '{% url "account:login" %}',
+            data: {
+                i: 'login_this_user',
+                mobile_number: mobileNumber,
+                password: code
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data['i'] === 1) {
+                    messageContainer.innerHTML = '<div class="success-message">✅ ' + (data['msg'] || 'ورود موفق') + '</div>';
+                    if (data['user_id']) {
+                        window.location.href = '/dashboard/';
+                    } else {
+                        window.location.reload();
+                    }
+                } else if (data['i'] === 2) {
+                    messageContainer.innerHTML = '<div class="error-message">❌ ' + (data['msg'] || 'کد تأیید اشتباه است') + '</div>';
+                    // بازگشت به مرحله اول
+                    document.getElementById('step-code').style.display = 'none';
+                    document.getElementById('step-mobile').style.display = 'block';
+                    document.getElementById('form-title').innerHTML = 'ورود با <span class="highlight">پیامک</span>';
+                    document.getElementById('mobile_number').value = '';
+                    document.getElementById('verify_code').value = '';
+                    if (countdownInterval) clearInterval(countdownInterval);
+                } else {
+                    messageContainer.innerHTML = '<div class="error-message">❌ ' + (data['msg'] || 'خطا در تأیید کد') + '</div>';
+                }
+            },
+            error: function() {
+                messageContainer.innerHTML = '<div class="error-message">❌ خطا در ارتباط با سرور</div>';
+            }
+        });
+    }
+
+    // ========== رویدادها ==========
+    document.getElementById('btn-send-code').addEventListener('click', sendVerificationCode);
+    document.getElementById('btn-verify').addEventListener('click', verifyAndLogin);
+    document.getElementById('resend-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        resendCode();
+    });
+
+    // ارسال با کلید Enter
+    document.getElementById('mobile_number').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendVerificationCode();
+    });
+    document.getElementById('verify_code').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') verifyAndLogin();
+    });
+
+    // ========== پشتیبانی از تم تاریک ==========
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-theme');
+    }
+</script>
+
+</body>
+</html>

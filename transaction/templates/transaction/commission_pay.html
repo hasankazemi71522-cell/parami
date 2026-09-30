@@ -1,0 +1,97 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">ثبت پرداخت</span>
+        <span>کمیسیون</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> ثبت پرداخت مستقیم</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>مشتری:</strong> {{ commission.contract.customer.full_name|default:"---" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>ملک:</strong> {{ commission.contract.property_title|default:"---" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>مبلغ کل کمیسیون پرداختی:</strong> {{ commission.total_share_sum }} تومان
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            پرداخت مستقیم برای تسویه نقدی کمیسیون استفاده می‌شود.
+                            اگر قبلاً سهم‌ها به کیف پول واریز شده‌اند، نیازی به این مرحله نیست.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.payment_type.label }}</label>
+                    {{ form.payment_type }}
+                    {% if form.payment_type.errors %}
+                        <div class="text-danger small">{{ form.payment_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.payment_receipt.label }}</label>
+                    {{ form.payment_receipt }}
+                    <small class="text-muted d-block">فایل رسید پرداخت (اختیاری اما توصیه می‌شود)</small>
+                    {% if form.payment_receipt.errors %}
+                        <div class="text-danger small">{{ form.payment_receipt.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.payment_notes.label }}</label>
+                    {{ form.payment_notes }}
+                    {% if form.payment_notes.errors %}
+                        <div class="text-danger small">{{ form.payment_notes.errors }}</div>
+                    {% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> ثبت پرداخت
+                    </button>
+                    <a href="{% url 'transaction:commission_detail' commission.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> انصراف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

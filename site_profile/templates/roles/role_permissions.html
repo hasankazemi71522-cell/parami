@@ -1,0 +1,192 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block Header_ref %}
+<style>
+    .group-section {
+        margin-bottom: 2rem;
+        padding: 1rem 1rem 0.5rem 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    .group-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid #ff7900;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .group-title i {
+        color: #ff7900;
+        font-size: 1.2rem;
+    }
+    .group-divider {
+        border: none;
+        border-top: 2px dashed #dee2e6;
+        margin: 1.8rem 0;
+    }
+    .permission-item {
+        padding: 0.3rem 0.5rem;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    .permission-item:hover {
+        background: #e9ecef;
+    }
+    .permission-item .form-check-label small {
+        display: block;
+        padding-right: 1.8rem;
+    }
+    .permission-item .form-check-label .code-badge {
+        display: inline-block;
+        background: #e9ecef;
+        padding: 0.1rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        color: #6c757d;
+        font-family: monospace;
+        margin-right: 0.5rem;
+    }
+    .permission-item .form-check-label .perm-desc {
+        color: #6c757d;
+        font-size: 0.8rem;
+        display: block;
+        padding-right: 1.8rem;
+    }
+    .group-counter {
+        font-size: 0.8rem;
+        color: #6c757d;
+        background: #e9ecef;
+        padding: 0.1rem 0.7rem;
+        border-radius: 12px;
+        margin-right: 0.5rem;
+        font-weight: normal;
+    }
+    .permission-checkbox {
+        margin-top: 0.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">مجوزهای</span>
+        <span>{{ role.title }}</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box">
+    <div class="container-fluid">
+
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle"></i>
+                مجوزهای مورد نظر را برای نقش <strong>{{ role.title }}</strong> انتخاب کنید
+                <span class="badge bg-secondary ms-2">{{ all_permissions.count }} مجوز</span>
+            </p>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAll()">
+                    <i class="bi bi-check-all"></i> انتخاب همه
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">
+                    <i class="bi bi-x-circle"></i> لغو همه
+                </button>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {# ====== گروه‌بندی مجوزها بر اساس فیلد group ====== #}
+            {% regroup all_permissions by group as grouped_permissions %}
+
+            {% for group in grouped_permissions %}
+                <div class="group-section dark_back_color">
+                    <div class="group-title">
+                        <i class="bi bi-folder"></i>
+                        <span>{{ group.grouper|default:"سایر" }}</span>
+                        <span class="group-counter">{{ group.list|length }}</span>
+                    </div>
+
+                    <div class="row">
+                        {% for permission in group.list %}
+                            <div class="col-md-6 col-lg-4 permission-item">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input permission-checkbox"
+                                           id="perm_{{ permission.id }}"
+                                           name="permissions"
+                                           value="{{ permission.id }}"
+                                           {% if permission.id in role_permissions %}checked{% endif %}>
+                                    <label class="form-check-label" for="perm_{{ permission.id }}">
+                                        <strong>{{ permission.name }}</strong>
+                                        <span class="code-badge dark_back_color">{{ permission.code }}</span>
+                                        {% if permission.description %}
+                                            <span class="perm-desc">{{ permission.description }}</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# ====== خط جداکننده بین گروه‌ها (به جز آخرین گروه) ====== #}
+                {% if not forloop.last %}
+                    <hr class="group-divider">
+                {% endif %}
+
+            {% empty %}
+                <div class="alert alert-warning text-center">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    هیچ مجوزی تعریف نشده است. لطفاً ابتدا مجوزها را ایجاد کنید.
+                </div>
+            {% endfor %}
+
+            <div class="mt-4 d-flex flex-wrap gap-2 align-items-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> ذخیره مجوزها
+                </button>
+                <a href="{% url 'site_profile:role_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-right"></i> بازگشت
+                </a>
+                <span class="badge bg-success ms-2 fs-6" id="selectedCounter">0 مجوز انتخاب شده</span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateCounter() {
+        const checked = document.querySelectorAll('.permission-checkbox:checked').length;
+        const total = document.querySelectorAll('.permission-checkbox').length;
+        document.getElementById('selectedCounter').textContent = checked + ' از ' + total + ' مجوز انتخاب شده';
+    }
+
+    function selectAll() {
+        document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = true);
+        updateCounter();
+    }
+
+    function deselectAll() {
+        document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = false);
+        updateCounter();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateCounter);
+
+    document.querySelectorAll('.permission-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateCounter);
+    });
+</script>
+
+{% endblock %}
+
+{% block Footer_ref %}
+{% endblock %}

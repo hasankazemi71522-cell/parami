@@ -1,0 +1,217 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">تاریخچه</span>
+        <span>فرآیندهای بسته‌شده تیم</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    <!-- ====== پیغام‌ها ====== -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ====== آمار ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-2">
+            <div class="card bg-secondary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.total }}</h3>
+                    <p class="mb-0"><i class="fas fa-folder-open"></i> کل</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.success }}</h3>
+                    <p class="mb-0"><i class="fas fa-check-circle"></i> موفق</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.fail }}</h3>
+                    <p class="mb-0"><i class="fas fa-times-circle"></i> ناموفق</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.cancelled }}</h3>
+                    <p class="mb-0"><i class="fas fa-ban"></i> لغو شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.converted|default:0 }}</h3>
+                    <p class="mb-0"><i class="fas fa-file-signature"></i> تبدیل به قرارداد</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-purple text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.sent_to_accounting|default:0 }}</h3>
+                    <p class="mb-0"><i class="fas fa-calculator"></i> در حسابداری</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== فیلترها ====== -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="جستجو بر اساس نام یا موبایل..." value="{{ search }}">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">همه وضعیت‌ها</option>
+                {% for code, label in process_statuses %}
+                    {% if code in 'closed_success,closed_fail,cancelled,converted,sent_to_accounting' %}
+                        <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="expert" class="form-select" onchange="this.form.submit()">
+                <option value="">همه کارشناسان</option>
+                {% for expert in experts %}
+                    <option value="{{ expert.id }}" {% if expert_filter == expert.id|stringformat:'s' %}selected{% endif %}>
+                        {{ expert.get_full_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'case_management:supervisor_archived_processes' %}" class="btn btn-secondary w-100">
+                <i class="fas fa-times"></i> پاک کردن
+            </a>
+        </div>
+        <div class="col-md-2 text-end">
+            <span class="badge bg-secondary fs-6">کل: {{ stats.total }}</span>
+        </div>
+    </form>
+
+    <!-- ====== لیست فرآیندها ====== -->
+    <div class="table-responsive">
+        <table class="table table-hover table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>مشتری</th>
+                    <th>کارشناس</th>
+                    <th>وضعیت نهایی</th>
+                    <th>نتیجه</th>
+                    <th>تاریخ بسته‌شدن</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in processes %}
+                <tr>
+                    <td>
+                        <strong>{{ process.customer.full_name }}</strong>
+                        <br><small class="text-muted">{{ process.customer.mobile }}</small>
+                    </td>
+                    <td>{{ process.expert.get_full_name }}</td>
+                    <td>
+                        <span class="badge
+                            {% if process.status == 'closed_success' %}bg-success
+                            {% elif process.status == 'closed_fail' %}bg-danger
+                            {% elif process.status == 'cancelled' %}bg-secondary
+                            {% elif process.status == 'converted' %}bg-primary
+                            {% elif process.status == 'sent_to_accounting' %}bg-purple
+                            {% else %}bg-dark{% endif %}">
+                            {{ process.get_status_display }}
+                        </span>
+                        {% if process.status == 'sent_to_accounting' %}
+                            <span class="badge bg-purple"><i class="fas fa-calculator"></i> حسابداری</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small>{{ process.final_result|truncatewords:10|default:"---" }}</small>
+                    </td>
+                    <td>{{ process.closed_at|show_jalali|default:"---" }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'case_management:supervisor_process_detail' process.id %}"
+                               class="btn btn-sm btn-info" title="مشاهده جزئیات">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if process.contract %}
+                                <a href="{% url 'transaction:contract_detail' process.contract.id %}"
+                                   class="btn btn-sm btn-success" title="مشاهده قرارداد">
+                                    <i class="fas fa-file-contract"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-inbox fa-2x d-block mb-2"></i>
+                            <strong>هیچ فرآیند بسته‌شده‌ای یافت نشد</strong>
+                            <p class="mb-0">هنوز هیچ فرآیندی برای تیم شما بسته نشده است.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ====== Pagination ====== -->
+    {% include 'shared_index/_pagination.html' with page_obj=processes %}
+
+    <!-- ====== دکمه بازگشت ====== -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'case_management:supervisor_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> بازگشت به داشبورد
+        </a>
+        <a href="{% url 'case_management:supervisor_process_list' %}" class="btn btn-primary">
+            <i class="fas fa-list"></i> مشاهده فرآیندهای فعال
+        </a>
+    </div>
+
+</div>
+
+<style>
+    .table td { vertical-align: middle; }
+    .table th { vertical-align: middle; }
+    .badge { font-size: 0.85rem; }
+    .card { transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .slider-parent { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .btn-group .btn { margin: 0 2px; }
+
+    /* رنگ بنفش برای وضعیت‌های جدید */
+    .bg-purple {
+        background-color: #6f42c1 !important;
+        color: white !important;
+    }
+</style>
+
+{% endblock %}

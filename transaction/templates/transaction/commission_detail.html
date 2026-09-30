@@ -1,0 +1,156 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">جزئیات</span>
+        <span>کمیسیون</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ====== اطلاعات اصلی ====== -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> اطلاعات کمیسیون</h5>
+        </div>
+        <div class="card-body dark_back_color">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless">
+                        <tr><th style="width:30%;">قرارداد:</th><td>{{ commission.contract.contract_number|default:"---" }}</td></tr>
+                        <tr><th>مشتری:</th><td>{{ commission.contract.customer.full_name|default:"---" }}</td></tr>
+                        <tr><th>ملک:</th><td>{{ commission.contract.property_title|default:"---" }}</td></tr>
+                        <tr><th>کارشناس:</th><td>{{ commission.contract.expert.get_full_name|default:"---" }}</td></tr>
+                        <tr><th>سرپرست:</th><td>{{ commission.contract.supervisor.get_full_name|default:"---" }}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless">
+                        <tr><th>وضعیت:</th>
+                            <td>
+                                <span class="badge
+                                    {% if commission.status == 'pending' %}bg-warning text-dark
+                                    {% elif commission.status == 'calculated' %}bg-info text-white
+                                    {% elif commission.status == 'wallet_transferred' %}bg-primary text-white
+                                    {% elif commission.status == 'paid' %}bg-success text-white
+                                    {% elif commission.status == 'partial_paid' %}bg-secondary text-white
+                                    {% else %}bg-danger text-white{% endif %}">
+                                    {{ commission.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr><th>مبلغ کل معامله:</th><td>{{ commission.total_amount }} تومان</td></tr>
+                        <tr><th>مبلغ کل کمیسیون:</th><td><strong>{{ commission.total_commission }}</strong> تومان</td></tr>
+                        <tr><th>جمع سهم‌های پرداختی:</th><td>{{ commission.total_share_sum }} تومان</td></tr>
+                        <tr><th>تاریخ ایجاد:</th><td>{{ commission.created_at|show_jalali }}</td></tr>
+                        {% if commission.paid_at %}
+                        <tr><th>تاریخ تسویه:</th><td>{{ commission.paid_at|show_jalali }}</td></tr>
+                        {% endif %}
+                        {% if commission.wallet_transferred_at %}
+                        <tr><th>تاریخ واریز به کیف پول:</th><td>{{ commission.wallet_transferred_at|show_jalali }}</td></tr>
+                        {% endif %}
+                        <tr><th>حسابدار:</th><td>{{ commission.accountant.get_full_name|default:"---" }}</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== دکمه‌های عملیاتی ====== -->
+    <div class="mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            {% if commission.status == 'pending' %}
+                <a href="{% url 'transaction:commission_calculate' commission.id %}" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> محاسبه کمیسیون
+                </a>
+            {% endif %}
+            {% if can_transfer_to_wallet %}
+                <a href="{% url 'transaction:commission_transfer_to_wallet' commission.id %}" class="btn btn-success" onclick="return confirm('سهم‌های این کمیسیون به کیف پول گیرندگان واریز شود؟')">
+                    <i class="fas fa-wallet"></i> واریز به کیف پول
+                </a>
+            {% endif %}
+            {% if can_pay_directly %}
+                <a href="{% url 'transaction:commission_pay' commission.id %}" class="btn btn-warning">
+                    <i class="fas fa-money-bill-wave"></i> پرداخت مستقیم
+                </a>
+            {% endif %}
+            <a href="{% url 'transaction:commission_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+    </div>
+
+    <!-- ====== جدول سهم‌ها ====== -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-users"></i> سهم‌های کمیسیون</h5>
+        </div>
+        <div class="card-body dark_back_color">
+            {% if shares %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped text-center align-middle">
+                    <thead>
+                        <tr>
+                            <th>گیرنده</th>
+                            <th>نقش</th>
+                            <th>درصد</th>
+                            <th>مبلغ (تومان)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, share in shares.items %}
+                            {% if key != 'total_commission' and key != 'total_amount' and key != 'total_share_sum' %}
+                            <tr>
+                                <td>
+                                    {% if share.recipient %}
+                                        {{ share.recipient.get_full_name }}
+                                        <br><small class="text-muted">{{ share.recipient.mobile|default:"" }}</small>
+                                    {% else %}
+                                        <span class="text-muted">نامشخص</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {% if key == 'property_register' %}ثبت‌کننده فایل
+                                        {% elif key == 'customer_register' %}ثبت‌کننده مشتری
+                                        {% elif key == 'expert' %}کارشناس
+                                        {% elif key == 'supervisor' %}سرپرست
+                                        {% elif key == 'meeting_manager' %}مدیر جلسه
+                                        {% else %}{{ key }}{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ share.percentage|floatformat:0 }}%</td>
+                                <td><strong>{{ share.amount }}</strong></td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        <tr class="table-success fw-bold">
+                            <td colspan="3">جمع سهم‌های پرداختی به اعضا</td>
+                            <td>{{ shares.total_share_sum }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-secondary text-center">
+                <i class="fas fa-info-circle"></i> کمیسیون هنوز محاسبه نشده است.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

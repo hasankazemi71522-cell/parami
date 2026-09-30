@@ -1,0 +1,1603 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">{{ title }}</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+    <form method="POST" class="row g-4" id="customerForm">
+        {% csrf_token %}
+
+        <!-- ============================================================ -->
+        <!-- بخش ۱: اطلاعات شخصی -->
+        <!-- ============================================================ -->
+        <div class="col-12">
+            <h5 class="border-bottom pb-2 text-primary">
+                <i class="fas fa-user"></i> اطلاعات شخصی
+            </h5>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">نام</label>
+            <input type="text"
+                   name="first_name"
+                   class="form-control"
+                   placeholder="نام مشتری را وارد کنید"
+                   value="{{ customer.user.first_name|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">نام خانوادگی</label>
+            <input type="text"
+                   name="last_name"
+                   class="form-control"
+                   placeholder="نام خانوادگی مشتری را وارد کنید"
+                   value="{{ customer.user.last_name|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">
+                شماره موبایل <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+                <input type="tel"
+                       name="mobile"
+                       id="mobile"
+                       class="form-control"
+                       placeholder="09xxxxxxxxx"
+                       dir="ltr"
+                       value="{{ customer.user.mobile|default:'' }}"
+                       inputmode="tel"
+                       autocomplete="tel"
+                       required>
+                <button type="button"
+                        class="btn btn-outline-primary"
+                        id="pickContactBtn"
+                        onclick="pickContact()"
+                        title="انتخاب از مخاطبین گوشی">
+                    <i class="fas fa-address-book"></i>
+                </button>
+            </div>
+            <small class="text-muted">
+                <i class="fas fa-info-circle"></i>
+                روی دکمه دفترچه تلفن بزنید تا مخاطبین گوشی باز شود
+            </small>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">ایمیل</label>
+            <input type="email"
+                   name="email"
+                   class="form-control"
+                   placeholder="example@email.com (اختیاری)"
+                   value="{{ customer.user.email|default:'' }}">
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- بخش ۲: نوع و وضعیت -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-primary">
+                <i class="fas fa-tag"></i> نوع و وضعیت
+            </h5>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">نوع مشتری <span class="text-danger">*</span></label>
+            <select name="customer_type" class="form-select" id="id_customer_type" onchange="toggleBudgetSections()">
+                {% for value, label in customer_types %}
+                    <option value="{{ value }}" {% if customer.customer_type == value or not customer and value == 'buyer' %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">وضعیت</label>
+            <select name="status" class="form-select">
+                {% for value, label in statuses %}
+                    <option value="{{ value }}" {% if customer.status == value or not customer and value == 'new' %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">اولویت (۰ تا ۱۰)</label>
+            <input type="number"
+                   name="priority"
+                   class="form-control"
+                   min="0"
+                   max="10"
+                   placeholder="اولویت ۰ تا ۱۰"
+                   value="{{ customer.priority|default:0 }}">
+            <small class="text-muted">عدد بزرگتر = اولویت بالاتر</small>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">منبع مشتری</label>
+            <select name="source" class="form-select">
+                <option value="">--- انتخاب کنید ---</option>
+                {% for source in sources %}
+                    <option value="{{ source.id }}" {% if customer.source.id == source.id %}selected{% endif %}>
+                        {{ source.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 🆕 بخش ۲.۵: کاربری‌های مورد نظر (سندی + فرعی) -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-purple">
+                <i class="fas fa-layer-group"></i> کاربری مورد نظر
+                <small class="text-muted">(کاربری سندی + کاربردهای فرعی)</small>
+            </h5>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-bold">
+                کاربری سندی (اصلی)
+                <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" title="کاربری که در سند ملک درج شده است"></i>
+            </label>
+            <select name="primary_usage" class="form-select" id="primary_usage">
+                <option value="">--- انتخاب کنید ---</option>
+                {% for usage in usage_types %}
+                    <option value="{{ usage.id }}" {% if customer.primary_usage.id == usage.id %}selected{% endif %}>
+                        {{ usage.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-bold">کاربردهای فرعی (چندگزینه‌ای)</label>
+            <div class="row">
+                {% for usage in usage_types %}
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_usage_types"
+                                   value="{{ usage.id }}"
+                                   class="form-check-input"
+                                   id="usage_{{ usage.id }}"
+                                   {% if usage.id in customer_preferred_usage_types %}checked{% endif %}>
+                            <label class="form-check-label" for="usage_{{ usage.id }}">
+                                <span class="badge me-1" style="background-color: {{ usage.color|default:'#6c757d' }};">
+                                    <i class="fas {{ usage.icon|default:'fa-tag' }}"></i>
+                                </span>
+                                {{ usage.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            هیچ نوع کاربری در سیستم تعریف نشده است. لطفاً ابتدا کاربری‌ها را از پنل ادمین ایجاد کنید.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <small class="text-muted">کاربری‌هایی که مشتری در ملک مورد نظر خود می‌خواهد (کاربردهای ملک)</small>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- بخش ۳: بودجه خرید -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3" id="budgetBuySection">
+            <h5 class="border-bottom pb-2 text-success">
+                <i class="fas fa-money-bill"></i> بودجه خرید
+            </h5>
+        </div>
+
+        <div class="col-md-3" id="budgetMinSection">
+            <label class="form-label fw-bold">حداقل بودجه (تومان)</label>
+            <input type="text"
+                   name="budget_min"
+                   id="budget_min"
+                   class="form-control money-input"
+                   placeholder="حداقل بودجه خرید"
+                   dir="ltr"
+                   value="{{ customer.budget_min|default:'' }}"
+                   oninput="formatMoney(this)">
+            <small class="text-muted money-display" id="budget_min_display"></small>
+        </div>
+
+        <div class="col-md-3" id="budgetMaxSection">
+            <label class="form-label fw-bold">حداکثر بودجه (تومان)</label>
+            <input type="text"
+                   name="budget_max"
+                   id="budget_max"
+                   class="form-control money-input"
+                   placeholder="حداکثر بودجه خرید"
+                   dir="ltr"
+                   value="{{ customer.budget_max|default:'' }}"
+                   oninput="formatMoney(this)">
+            <small class="text-muted money-display" id="budget_max_display"></small>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- بخش ۴: بودجه اجاره -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3" id="budgetRentSection" style="display: none;">
+            <h5 class="border-bottom pb-2 text-info">
+                <i class="fas fa-home"></i> بودجه اجاره
+            </h5>
+        </div>
+
+        <div class="col-md" id="rentTypeSection" style="display: none;">
+            <label class="form-label fw-bold">نوع اجاره</label>
+            <select name="rent_type" class="form-select">
+                {% for value, label in rent_types %}
+                    <option value="{{ value }}" {% if customer.rent_type == value or not customer and value == 'rent' %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md" id="mortgageMinSection" style="display: none;">
+            <label class="form-label fw-bold">حداقل رهن (تومان)</label>
+            <input type="text"
+                   name="mortgage_min"
+                   id="mortgage_min"
+                   class="form-control money-input"
+                   placeholder="حداقل رهن"
+                   dir="ltr"
+                   value="{{ customer.mortgage_min|default:'' }}"
+                   oninput="formatMoney(this)">
+            <small class="text-muted money-display" id="mortgage_min_display"></small>
+        </div>
+
+        <div class="col-md" id="mortgageMaxSection" style="display: none;">
+            <label class="form-label fw-bold">حداکثر رهن (تومان)</label>
+            <input type="text"
+                   name="mortgage_max"
+                   id="mortgage_max"
+                   class="form-control money-input"
+                   placeholder="حداکثر رهن"
+                   dir="ltr"
+                   value="{{ customer.mortgage_max|default:'' }}"
+                   oninput="formatMoney(this)">
+            <small class="text-muted money-display" id="mortgage_max_display"></small>
+        </div>
+
+        <div class="col-md" id="rentMinSection" style="display: none;">
+            <label class="form-label fw-bold">حداقل اجاره (تومان)</label>
+            <input type="text"
+                   name="rent_min"
+                   id="rent_min"
+                   class="form-control money-input"
+                   placeholder="حداقل اجاره ماهیانه"
+                   dir="ltr"
+                   value="{{ customer.rent_min|default:'' }}"
+                   oninput="formatMoney(this)">
+            <small class="text-muted money-display" id="rent_min_display"></small>
+        </div>
+
+        <div class="col-md" id="rentMaxSection" style="display: none;">
+            <label class="form-label fw-bold">حداکثر اجاره (تومان)</label>
+            <input type="text"
+                   name="rent_max"
+                   id="rent_max"
+                   class="form-control money-input"
+                   placeholder="حداکثر اجاره ماهیانه"
+                   dir="ltr"
+                   value="{{ customer.rent_max|default:'' }}"
+                   oninput="formatMoney(this)">
+            <small class="text-muted money-display" id="rent_max_display"></small>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- بخش ۵: مناطق مورد نظر (سلسله‌مراتبی) -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-warning">
+                <i class="fas fa-map-marker-alt"></i> مناطق مورد نظر
+                <small class="text-muted">(استان → شهرستان → انتخاب محله‌ها)</small>
+            </h5>
+        </div>
+
+        <div class="col-12">
+            <input type="hidden" name="selected_locations" id="selected_locations" value='{{ customer.get_selected_locations_json|default:"[]" }}'>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">استان <span class="text-danger">*</span></label>
+                    <select id="provinceSelect" class="form-select" onchange="loadCities()">
+                        <option value="">--- انتخاب استان ---</option>
+                        {% for province in provinces %}
+                            <option value="{{ province.id }}"
+                                {% if customer and customer.preferred_neighborhoods.first %}
+                                    {% with first_neighborhood=customer.preferred_neighborhoods.first %}
+                                        {% if first_neighborhood.city.province.id == province.id %}selected{% endif %}
+                                    {% endwith %}
+                                {% endif %}>
+                                {{ province.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">شهرستان <span class="text-danger">*</span></label>
+                    <select id="citySelect" class="form-select" onchange="loadNeighborhoods()" disabled>
+                        <option value="">--- ابتدا استان را انتخاب کنید ---</option>
+                        {% if customer and customer.preferred_neighborhoods.first %}
+                            {% with first_neighborhood=customer.preferred_neighborhoods.first %}
+                                <option value="{{ first_neighborhood.city.id }}" selected>
+                                    {{ first_neighborhood.city.name }}
+                                </option>
+                            {% endwith %}
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="card border border-info mb-3">
+                <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2 dark_back_color">
+                    <h6 class="mb-0">
+                        <i class="fas fa-map-pin"></i>
+                        محله‌های <span id="selectedCityNameDisplay">
+                            {% if customer and customer.preferred_neighborhoods.first %}
+                                {{ customer.preferred_neighborhoods.first.city.name }}
+                            {% else %}
+                                انتخاب شده
+                            {% endif %}
+                        </span>
+                    </h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <!-- 🆕 فیلد جستجوی محله -->
+                        <input type="text" id="neighborhoodSearch" class="form-control form-control-sm" style="width: 180px;" placeholder="جستجوی محله..." oninput="filterNeighborhoods()">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllNeighborhoods()">
+                            <i class="fas fa-check-double"></i> انتخاب همه
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllNeighborhoods()">
+                            <i class="fas fa-times"></i> لغو همه
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body dark_back_color" id="neighborhoodsContainer">
+                    {% if customer and customer.preferred_neighborhoods.exists %}
+                        <div class="row" id="neighborhoodsList">
+                            {% for neighborhood in customer.preferred_neighborhoods.all %}
+                                <div class="col-md-3 col-sm-6 neighborhood-item" data-name="{{ neighborhood.name|lower }}">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               class="form-check-input neighborhood-checkbox"
+                                               id="neighborhood_{{ neighborhood.id }}"
+                                               value="{{ neighborhood.id }}"
+                                               data-name="{{ neighborhood.name }}"
+                                               checked
+                                               onchange="toggleNeighborhood({{ neighborhood.id }}, '{{ neighborhood.name }}')">
+                                        <label class="form-check-label" for="neighborhood_{{ neighborhood.id }}">
+                                            {{ neighborhood.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4" id="neighborhoodsPlaceholder">
+                            <i class="fas fa-info-circle fa-2x d-block mb-2"></i>
+                            لطفاً ابتدا استان و شهرستان را انتخاب کنید
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card border border-success dark_back_color">
+                <div class="card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-check-circle"></i>
+                        مناطق انتخاب شده (<span id="selectedCount">
+                            {% if customer %}
+                                {{ customer.preferred_neighborhoods.count }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </span>)
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="clearAllLocations()">
+                        <i class="fas fa-trash"></i> پاک کردن همه
+                    </button>
+                </div>
+                <div class="card-body" id="selectedLocationsContainer">
+                    {% if customer and customer.preferred_neighborhoods.exists %}
+                        {% regroup customer.preferred_neighborhoods.all by city as location_groups %}
+                        {% for group in location_groups %}
+                            <div class="mb-2">
+                                <div class="fw-bold text-info small">
+                                    <i class="fas fa-city"></i> {{ group.grouper.province.name }} - {{ group.grouper.name }}
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    {% for neighborhood in group.list %}
+                                        <span class="location-tag">
+                                            <i class="fas fa-map-pin"></i>
+                                            {{ neighborhood.name }}
+                                            <span class="remove-btn" onclick="removeLocation({{ neighborhood.id }})">&times;</span>
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">هیچ منطقه‌ای انتخاب نشده است</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- بخش ۶: انواع ملک -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-danger">
+                <i class="fas fa-building"></i> انواع ملک مورد نظر
+            </h5>
+        </div>
+
+        <div class="col-12">
+            <div class="row">
+                {% for property_type in property_types %}
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_property_types"
+                                   value="{{ property_type.id }}"
+                                   class="form-check-input"
+                                   id="prop_type_{{ property_type.id }}"
+                                   {% if property_type.id in customer_preferred_property_types %}checked{% endif %}>
+                            <label class="form-check-label" for="prop_type_{{ property_type.id }}">
+                                {% if property_type.icon %}
+                                    <i class="{{ property_type.icon }}"></i>
+                                {% endif %}
+                                {{ property_type.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- بخش ۷: نیازهای خاص -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-purple">
+                <i class="fas fa-check-circle"></i> نیازهای خاص مورد نظر
+            </h5>
+            <small class="text-muted">امکاناتی که مشتری در ملک مورد نظر خود می‌خواهد</small>
+        </div>
+
+        <div class="col-12">
+            <div class="row">
+                {% for requirement in requirements %}
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_requirements"
+                                   value="{{ requirement.id }}"
+                                   class="form-check-input"
+                                   id="req_{{ requirement.id }}"
+                                   {% if requirement.id in customer_preferred_requirements %}checked{% endif %}>
+                            <label class="form-check-label" for="req_{{ requirement.id }}">
+                                {% if requirement.icon %}
+                                    <i class="{{ requirement.icon }}"></i>
+                                {% endif %}
+                                {{ requirement.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 🆕 بخش ۸: مشخصات فنی (با فیلدهای جدید) -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-secondary">
+                <i class="fas fa-ruler-combined"></i> مشخصات فنی ملک
+            </h5>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداقل متراژ (متر مربع)</label>
+            <input type="number"
+                   name="min_area"
+                   class="form-control"
+                   placeholder="حداقل متراژ"
+                   step="0.1"
+                   value="{{ customer.min_area|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداکثر متراژ (متر مربع)</label>
+            <input type="number"
+                   name="max_area"
+                   class="form-control"
+                   placeholder="حداکثر متراژ"
+                   step="0.1"
+                   value="{{ customer.max_area|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداقل تعداد اتاق</label>
+            <input type="number"
+                   name="min_rooms"
+                   class="form-control"
+                   placeholder="حداقل اتاق"
+                   min="0"
+                   value="{{ customer.min_rooms|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداکثر تعداد اتاق</label>
+            <input type="number"
+                   name="max_rooms"
+                   class="form-control"
+                   placeholder="حداکثر اتاق"
+                   min="0"
+                   value="{{ customer.max_rooms|default:'' }}">
+        </div>
+
+        <!-- 🆕 ردیف جدید: طبقه، تعداد طبقات، واحد در طبقه -->
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداقل طبقه</label>
+            <input type="number"
+                   name="preferred_min_floor"
+                   class="form-control"
+                   placeholder="مثلاً ۱"
+                   min="0"
+                   value="{{ customer.preferred_min_floor|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداکثر طبقه</label>
+            <input type="number"
+                   name="preferred_max_floor"
+                   class="form-control"
+                   placeholder="مثلاً ۱۰"
+                   min="0"
+                   value="{{ customer.preferred_max_floor|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداقل تعداد طبقات ساختمان</label>
+            <input type="number"
+                   name="preferred_min_total_floors"
+                   class="form-control"
+                   placeholder="مثلاً ۱"
+                   min="1"
+                   value="{{ customer.preferred_min_total_floors|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداکثر تعداد طبقات ساختمان</label>
+            <input type="number"
+                   name="preferred_max_total_floors"
+                   class="form-control"
+                   placeholder="مثلاً ۱۰"
+                   min="1"
+                   value="{{ customer.preferred_max_total_floors|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداقل واحد در طبقه</label>
+            <input type="number"
+                   name="preferred_min_units_per_floor"
+                   class="form-control"
+                   placeholder="مثلاً ۱"
+                   min="1"
+                   value="{{ customer.preferred_min_units_per_floor|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداکثر واحد در طبقه</label>
+            <input type="number"
+                   name="preferred_max_units_per_floor"
+                   class="form-control"
+                   placeholder="مثلاً ۴"
+                   min="1"
+                   value="{{ customer.preferred_max_units_per_floor|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداقل میزان دانگ (۱ تا ۶)</label>
+            <input type="number"
+                   name="preferred_dong_min"
+                   class="form-control"
+                   placeholder="مثلاً ۱"
+                   min="1"
+                   max="6"
+                   value="{{ customer.preferred_dong_min|default:'' }}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">حداکثر میزان دانگ (۱ تا ۶)</label>
+            <input type="number"
+                   name="preferred_dong_max"
+                   class="form-control"
+                   placeholder="مثلاً ۶"
+                   min="1"
+                   max="6"
+                   value="{{ customer.preferred_dong_max|default:'' }}">
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 🆕 بخش ۹: جهت‌ها و وضعیت واحد -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-info">
+                <i class="fas fa-compass"></i> جهت‌ها و وضعیت واحد مورد نظر
+            </h5>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-bold">جهت ساختمان (چندگزینه‌ای)</label>
+            <div class="row">
+                {% for orientation in orientations %}
+                    <div class="col-md-2 col-sm-4">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_building_orientations"
+                                   value="{{ orientation.id }}"
+                                   class="form-check-input"
+                                   id="build_ori_{{ orientation.id }}"
+                                   {% if orientation.id in customer_preferred_building_orientations %}checked{% endif %}>
+                            <label class="form-check-label" for="build_ori_{{ orientation.id }}">
+                                {% if orientation.icon %}
+                                    <i class="{{ orientation.icon }}"></i>
+                                {% endif %}
+                                {{ orientation.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-bold">جهت واحد (چندگزینه‌ای)</label>
+            <div class="row">
+                {% for orientation in orientations %}
+                    <div class="col-md-2 col-sm-4">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_unit_orientations"
+                                   value="{{ orientation.id }}"
+                                   class="form-check-input"
+                                   id="unit_ori_{{ orientation.id }}"
+                                   {% if orientation.id in customer_preferred_unit_orientations %}checked{% endif %}>
+                            <label class="form-check-label" for="unit_ori_{{ orientation.id }}">
+                                {% if orientation.icon %}
+                                    <i class="{{ orientation.icon }}"></i>
+                                {% endif %}
+                                {{ orientation.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-bold">وضعیت واحد (چندگزینه‌ای)</label>
+            <div class="row">
+                {% for condition in unit_conditions %}
+                    <div class="col-md-2 col-sm-4">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_unit_conditions"
+                                   value="{{ condition.id }}"
+                                   class="form-check-input"
+                                   id="cond_{{ condition.id }}"
+                                   {% if condition.id in customer_preferred_unit_conditions %}checked{% endif %}>
+                            <label class="form-check-label" for="cond_{{ condition.id }}">
+                                {% if condition.icon %}
+                                    <i class="{{ condition.icon }}"></i>
+                                {% endif %}
+                                {{ condition.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 🆕 بخش ۱۰: وضعیت سند و پایان کار -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-success">
+                <i class="fas fa-file-alt"></i> وضعیت سند و پایان کار مورد نظر
+            </h5>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-check form-switch">
+                <input type="checkbox"
+                       name="need_completion_certificate"
+                       class="form-check-input"
+                       role="switch"
+                       id="need_completion_certificate"
+                       {% if customer.need_completion_certificate %}checked{% endif %}>
+                <label class="form-check-label fw-bold" for="need_completion_certificate">
+                    نیاز به پایان کار
+                </label>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-check form-switch">
+                <input type="checkbox"
+                       name="need_document"
+                       class="form-check-input"
+                       role="switch"
+                       id="need_document"
+                       {% if customer.need_document %}checked{% endif %}>
+                <label class="form-check-label fw-bold" for="need_document">
+                    نیاز به سند
+                </label>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-bold">انواع سند مورد نظر (چندگزینه‌ای)</label>
+            <div class="row">
+                {% for doc_type in document_types %}
+                    <div class="col-md-2 col-sm-4">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_document_types"
+                                   value="{{ doc_type.id }}"
+                                   class="form-check-input"
+                                   id="doc_{{ doc_type.id }}"
+                                   {% if doc_type.id in customer_preferred_document_types %}checked{% endif %}>
+                            <label class="form-check-label" for="doc_{{ doc_type.id }}">
+                                {{ doc_type.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-bold">انواع مالکیت سند مورد نظر (چندگزینه‌ای)</label>
+            <div class="row">
+                {% for own_doc in ownership_document_types %}
+                    <div class="col-md-2 col-sm-4">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="preferred_ownership_document_types"
+                                   value="{{ own_doc.id }}"
+                                   class="form-check-input"
+                                   id="own_doc_{{ own_doc.id }}"
+                                   {% if own_doc.id in customer_preferred_ownership_document_types %}checked{% endif %}>
+                            <label class="form-check-label" for="own_doc_{{ own_doc.id }}">
+                                {{ own_doc.name }}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- بخش ۱۱: نیازهای ویژه و توضیحات -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-3">
+            <h5 class="border-bottom pb-2 text-muted">
+                <i class="fas fa-pen"></i> توضیحات
+            </h5>
+        </div>
+        <div class="col-12">
+            <label class="form-label fw-bold">توضیحات تکمیلی</label>
+            <textarea name="description"
+                      class="form-control"
+                      rows="3"
+                      placeholder="توضیحات تکمیلی...">{{ customer.description|default:'' }}</textarea>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- دکمه‌ها -->
+        <!-- ============================================================ -->
+        <div class="col-12 mt-4 pt-3 border-top">
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary px-4 py-2">
+                    <i class="fas fa-save"></i>
+                    {% if is_create %}ثبت مشتری{% else %}بروزرسانی{% endif %}
+                </button>
+                <a href="javascript:history.back()" class="btn btn-secondary px-4 py-2">
+                    <i class="fas fa-times"></i> انصراف
+                </a>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<!-- ============================================================ -->
+<!-- استایل‌ها -->
+<!-- ============================================================ -->
+<style>
+    .form-check-input:checked {
+        background-color: #F97316;
+        border-color: #F97316;
+    }
+    .form-check-input:focus {
+        border-color: #F97316;
+        box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.25);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #F97316;
+        box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.25);
+    }
+    .text-purple {
+        color: #6f42c1;
+    }
+
+    .money-display {
+        direction: ltr;
+        font-weight: bold;
+        color: #28a745;
+        font-size: 0.9rem;
+    }
+
+    .location-tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #e9ecef;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        gap: 8px;
+        margin: 2px;
+    }
+    .location-tag .remove-btn {
+        cursor: pointer;
+        color: #dc3545;
+        font-weight: bold;
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+    .location-tag .remove-btn:hover {
+        color: #bd2130;
+    }
+
+    .neighborhood-checkbox:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    #neighborhoodsContainer {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    #neighborhoodsContainer .form-check {
+        padding: 4px 8px;
+        margin: 2px 0;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    #neighborhoodsContainer .form-check:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge-usage {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin: 2px;
+    }
+    /* مخفی کردن موارد فیلتر شده */
+    .neighborhood-item.hidden {
+        display: none;
+    }
+</style>
+
+<!-- ============================================================ -->
+<!-- اسکریپت‌ها -->
+<!-- ============================================================ -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // ============================================================
+        // 1. مدیریت نمایش/مخفی کردن بخش‌های بودجه
+        // ============================================================
+
+        function toggleBudgetSections() {
+            const customerType = document.getElementById('id_customer_type').value;
+
+            const budgetBuySection = document.getElementById('budgetBuySection');
+            const budgetMinSection = document.getElementById('budgetMinSection');
+            const budgetMaxSection = document.getElementById('budgetMaxSection');
+
+            const budgetRentSection = document.getElementById('budgetRentSection');
+            const rentTypeSection = document.getElementById('rentTypeSection');
+            const mortgageMinSection = document.getElementById('mortgageMinSection');
+            const mortgageMaxSection = document.getElementById('mortgageMaxSection');
+            const rentMinSection = document.getElementById('rentMinSection');
+            const rentMaxSection = document.getElementById('rentMaxSection');
+
+            if (customerType === 'buyer') {
+                budgetBuySection.style.display = 'block';
+                budgetMinSection.style.display = 'block';
+                budgetMaxSection.style.display = 'block';
+
+                budgetRentSection.style.display = 'none';
+                rentTypeSection.style.display = 'none';
+                mortgageMinSection.style.display = 'none';
+                mortgageMaxSection.style.display = 'none';
+                rentMinSection.style.display = 'none';
+                rentMaxSection.style.display = 'none';
+
+            } else if (customerType === 'tenant') {
+                budgetBuySection.style.display = 'none';
+                budgetMinSection.style.display = 'none';
+                budgetMaxSection.style.display = 'none';
+
+                budgetRentSection.style.display = 'block';
+                rentTypeSection.style.display = 'block';
+                mortgageMinSection.style.display = 'block';
+                mortgageMaxSection.style.display = 'block';
+                rentMinSection.style.display = 'block';
+                rentMaxSection.style.display = 'block';
+
+            } else {
+                budgetBuySection.style.display = 'block';
+                budgetMinSection.style.display = 'block';
+                budgetMaxSection.style.display = 'block';
+
+                budgetRentSection.style.display = 'block';
+                rentTypeSection.style.display = 'block';
+                mortgageMinSection.style.display = 'block';
+                mortgageMaxSection.style.display = 'block';
+                rentMinSection.style.display = 'block';
+                rentMaxSection.style.display = 'block';
+            }
+        }
+
+        toggleBudgetSections();
+        document.getElementById('id_customer_type').addEventListener('change', toggleBudgetSections);
+
+        // ============================================================
+        // 2. فرمت سه رقم سه رقم اعداد (فقط نمایشی در زیر فیلد)
+        // ============================================================
+
+        function updateMoneyDisplay(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            input.value = value;
+            const displayId = input.id + '_display';
+            const display = document.getElementById(displayId);
+            if (display) {
+                if (value && value.length > 0) {
+                    let number = parseInt(value);
+                    let formatted = new Intl.NumberFormat('fa-IR').format(number);
+                    display.textContent = '💰 ' + formatted + ' تومان';
+                } else {
+                    display.textContent = '';
+                }
+            }
+        }
+
+        document.querySelectorAll('.money-input').forEach(function(input) {
+            if (input.value) {
+                let num = input.value.replace(/[^0-9]/g, '');
+                input.value = num;
+                updateMoneyDisplay(input);
+            }
+            input.addEventListener('input', function() {
+                updateMoneyDisplay(this);
+            });
+            input.addEventListener('blur', function() {
+                updateMoneyDisplay(this);
+            });
+        });
+
+        // ============================================================
+        // 3. متغیرهای عمومی مدیریت مکان
+        // ============================================================
+
+        let selectedLocations = [];
+        let currentNeighborhoods = [];
+        let currentProvinceId = null;
+        let currentCityId = null;
+        let currentProvinceName = '';
+        let currentCityName = '';
+        let isInitialLoad = true;
+
+        // ============================================================
+        // 4. بارگذاری مقادیر اولیه (برای ویرایش)
+        // ============================================================
+
+        function loadInitialLocations() {
+            const locationsField = document.getElementById('selected_locations');
+            if (locationsField && locationsField.value) {
+                try {
+                    const parsed = JSON.parse(locationsField.value);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        selectedLocations = parsed;
+                        renderSelectedLocations();
+
+                        const first = parsed[0];
+                        if (first) {
+                            const provinceSelect = document.getElementById('provinceSelect');
+                            if (provinceSelect) {
+                                provinceSelect.value = first.province_id;
+                                loadCities(true);
+
+                                setTimeout(function() {
+                                    const citySelect = document.getElementById('citySelect');
+                                    if (citySelect) {
+                                        citySelect.value = first.city_id;
+                                        loadNeighborhoods();
+                                    }
+                                }, 500);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('خطا در بارگذاری مکان‌های ذخیره شده:', e);
+                    selectedLocations = [];
+                }
+            }
+            isInitialLoad = false;
+        }
+
+        // ============================================================
+        // 5. بارگذاری شهرستان‌ها بر اساس استان
+        // ============================================================
+
+        window.loadCities = function(silent = false) {
+            const provinceId = document.getElementById('provinceSelect').value;
+            const citySelect = document.getElementById('citySelect');
+            const container = document.getElementById('neighborhoodsContainer');
+
+            if (!provinceId) {
+                citySelect.innerHTML = '<option value="">--- ابتدا استان را انتخاب کنید ---</option>';
+                citySelect.disabled = true;
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4" id="neighborhoodsPlaceholder">
+                        <i class="fas fa-info-circle fa-2x d-block mb-2"></i>
+                        لطفاً ابتدا استان و شهرستان را انتخاب کنید
+                    </div>
+                `;
+                document.getElementById('selectedCityNameDisplay').textContent = 'انتخاب شده';
+                return;
+            }
+
+            const provinceSelect = document.getElementById('provinceSelect');
+            currentProvinceName = provinceSelect.options[provinceSelect.selectedIndex].text;
+            currentProvinceId = provinceId;
+
+            if (!silent) {
+                citySelect.innerHTML = '<option value="">⏳ در حال بارگذاری...</option>';
+                citySelect.disabled = true;
+            }
+
+            fetch(`/estate/api/cities-by-province/?province_id=${provinceId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    citySelect.innerHTML = '';
+                    citySelect.disabled = false;
+
+                    if (data.success === false) {
+                        throw new Error(data.error || 'خطا در دریافت اطلاعات');
+                    }
+
+                    if (data.cities && data.cities.length > 0) {
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '--- انتخاب شهرستان ---';
+                        citySelect.appendChild(defaultOption);
+
+                        data.cities.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = '⚠️ هیچ شهرستانی یافت نشد';
+                        citySelect.appendChild(option);
+                    }
+
+                    if (!silent) {
+                        container.innerHTML = `
+                            <div class="text-center text-muted py-4" id="neighborhoodsPlaceholder">
+                                <i class="fas fa-info-circle fa-2x d-block mb-2"></i>
+                                لطفاً شهرستان را انتخاب کنید
+                            </div>
+                        `;
+                        document.getElementById('selectedCityNameDisplay').textContent = 'انتخاب شده';
+                    }
+                })
+                .catch(error => {
+                    console.error('خطا در بارگذاری شهرستان‌ها:', error);
+                    if (!silent) {
+                        citySelect.innerHTML = `<option value="">❌ خطا در بارگذاری</option>`;
+                        citySelect.disabled = false;
+
+                        container.innerHTML = `
+                            <div class="text-center text-danger py-4">
+                                <i class="fas fa-exclamation-circle fa-2x d-block mb-2"></i>
+                                خطا در بارگذاری شهرستان‌ها
+                            </div>
+                        `;
+                    }
+                });
+        };
+
+        // ============================================================
+        // 6. بارگذاری محله‌ها بر اساس شهرستان
+        // ============================================================
+
+        window.loadNeighborhoods = function() {
+            const cityId = document.getElementById('citySelect').value;
+            const container = document.getElementById('neighborhoodsContainer');
+
+            if (!cityId) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4" id="neighborhoodsPlaceholder">
+                        <i class="fas fa-info-circle fa-2x d-block mb-2"></i>
+                        لطفاً شهرستان را انتخاب کنید
+                    </div>
+                `;
+                document.getElementById('selectedCityNameDisplay').textContent = 'انتخاب شده';
+                // پاک کردن جستجو
+                document.getElementById('neighborhoodSearch').value = '';
+                return;
+            }
+
+            const citySelect = document.getElementById('citySelect');
+            currentCityName = citySelect.options[citySelect.selectedIndex].text;
+            currentCityId = cityId;
+            document.getElementById('selectedCityNameDisplay').textContent = currentCityName;
+
+            container.innerHTML = `
+                <div class="text-center py-3">
+                    <span class="spinner-border spinner-border-sm"></span>
+                    در حال بارگذاری محله‌ها...
+                </div>
+            `;
+
+            fetch(`/estate/api/neighborhoods-by-city/?city_id=${cityId}`)
+                .then(response => response.json())
+                .then(data => {
+                    container.innerHTML = '';
+                    // پاک کردن جستجو
+                    document.getElementById('neighborhoodSearch').value = '';
+
+                    if (data.success && data.neighborhoods && data.neighborhoods.length > 0) {
+                        currentNeighborhoods = data.neighborhoods;
+
+                        const row = document.createElement('div');
+                        row.className = 'row';
+                        row.id = 'neighborhoodsList';
+
+                        data.neighborhoods.forEach(neighborhood => {
+                            const col = document.createElement('div');
+                            col.className = 'col-md-3 col-sm-6 neighborhood-item';
+                            col.dataset.name = neighborhood.name.toLowerCase();
+
+                            const isSelected = selectedLocations.some(
+                                loc => loc.neighborhood_id === neighborhood.id
+                            );
+
+                            col.innerHTML = `
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input neighborhood-checkbox"
+                                           id="neighborhood_${neighborhood.id}"
+                                           value="${neighborhood.id}"
+                                           data-name="${neighborhood.name}"
+                                           ${isSelected ? 'checked' : ''}
+                                           onchange="toggleNeighborhood(${neighborhood.id}, '${neighborhood.name}')">
+                                    <label class="form-check-label" for="neighborhood_${neighborhood.id}">
+                                        ${neighborhood.name}
+                                    </label>
+                                </div>
+                            `;
+                            row.appendChild(col);
+                        });
+
+                        container.appendChild(row);
+                    } else {
+                        container.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle fa-2x d-block mb-2"></i>
+                                هیچ محله‌ای برای این شهرستان یافت نشد
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('خطا:', error);
+                    container.innerHTML = `
+                        <div class="text-center text-danger py-4">
+                            <i class="fas fa-exclamation-circle fa-2x d-block mb-2"></i>
+                            خطا در بارگذاری محله‌ها
+                        </div>
+                    `;
+                });
+        };
+
+        // ============================================================
+        // 7. فیلتر محله‌ها (جستجو)
+        // ============================================================
+
+        window.filterNeighborhoods = function() {
+            const searchTerm = document.getElementById('neighborhoodSearch').value.toLowerCase().trim();
+            const items = document.querySelectorAll('.neighborhood-item');
+
+            items.forEach(item => {
+                const name = item.dataset.name || '';
+                if (name.includes(searchTerm)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        };
+
+        // ============================================================
+        // 8. توابع انتخاب/حذف محله
+        // ============================================================
+
+        window.toggleNeighborhood = function(neighborhoodId, neighborhoodName) {
+            const checkbox = document.getElementById(`neighborhood_${neighborhoodId}`);
+
+            if (checkbox.checked) {
+                const exists = selectedLocations.some(loc => loc.neighborhood_id === neighborhoodId);
+                if (!exists) {
+                    selectedLocations.push({
+                        province_id: parseInt(currentProvinceId),
+                        province_name: currentProvinceName,
+                        city_id: parseInt(currentCityId),
+                        city_name: currentCityName,
+                        neighborhood_id: neighborhoodId,
+                        neighborhood_name: neighborhoodName
+                    });
+                }
+            } else {
+                selectedLocations = selectedLocations.filter(
+                    loc => loc.neighborhood_id !== neighborhoodId
+                );
+            }
+
+            updateSelectedLocationsField();
+            renderSelectedLocations();
+        };
+
+        // ============================================================
+        // 9. انتخاب همه / لغو همه محله‌ها
+        // ============================================================
+
+        window.selectAllNeighborhoods = function() {
+            const checkboxes = document.querySelectorAll('.neighborhood-checkbox:not(.hidden)');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                const id = parseInt(checkbox.value);
+                const name = checkbox.dataset.name;
+                const exists = selectedLocations.some(loc => loc.neighborhood_id === id);
+                if (!exists) {
+                    selectedLocations.push({
+                        province_id: parseInt(currentProvinceId),
+                        province_name: currentProvinceName,
+                        city_id: parseInt(currentCityId),
+                        city_name: currentCityName,
+                        neighborhood_id: id,
+                        neighborhood_name: name
+                    });
+                }
+            });
+            updateSelectedLocationsField();
+            renderSelectedLocations();
+        };
+
+        window.deselectAllNeighborhoods = function() {
+            const checkboxes = document.querySelectorAll('.neighborhood-checkbox:not(.hidden)');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                const id = parseInt(checkbox.value);
+                selectedLocations = selectedLocations.filter(
+                    loc => loc.neighborhood_id !== id
+                );
+            });
+            updateSelectedLocationsField();
+            renderSelectedLocations();
+        };
+
+        // ============================================================
+        // 10. حذف یک منطقه از لیست انتخاب‌ها
+        // ============================================================
+
+        window.removeLocation = function(neighborhoodId) {
+            selectedLocations = selectedLocations.filter(
+                loc => loc.neighborhood_id !== neighborhoodId
+            );
+
+            const checkbox = document.getElementById(`neighborhood_${neighborhoodId}`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+
+            updateSelectedLocationsField();
+            renderSelectedLocations();
+        };
+
+        // ============================================================
+        // 11. پاک کردن همه مناطق انتخاب شده
+        // ============================================================
+
+        window.clearAllLocations = function() {
+            if (selectedLocations.length === 0) return;
+            if (!confirm('آیا از پاک کردن همه مناطق انتخاب شده مطمئن هستید؟')) return;
+
+            selectedLocations = [];
+
+            document.querySelectorAll('.neighborhood-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            updateSelectedLocationsField();
+            renderSelectedLocations();
+        };
+
+        // ============================================================
+        // 12. آپدیت فیلد مخفی و نمایش لیست انتخاب‌ها
+        // ============================================================
+
+        function updateSelectedLocationsField() {
+            document.getElementById('selected_locations').value = JSON.stringify(selectedLocations);
+            document.getElementById('selectedCount').textContent = selectedLocations.length;
+        }
+
+        function renderSelectedLocations() {
+            const container = document.getElementById('selectedLocationsContainer');
+            document.getElementById('selectedCount').textContent = selectedLocations.length;
+
+            if (selectedLocations.length === 0) {
+                container.innerHTML = '<span class="text-muted">هیچ منطقه‌ای انتخاب نشده است</span>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            const grouped = {};
+            selectedLocations.forEach(loc => {
+                const key = `${loc.province_id}-${loc.city_id}`;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        province_id: loc.province_id,
+                        province_name: loc.province_name,
+                        city_id: loc.city_id,
+                        city_name: loc.city_name,
+                        neighborhoods: []
+                    };
+                }
+                grouped[key].neighborhoods.push({
+                    id: loc.neighborhood_id,
+                    name: loc.neighborhood_name
+                });
+            });
+
+            Object.values(grouped).forEach(group => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mb-2';
+                wrapper.innerHTML = `
+                    <div class="fw-bold text-info small">
+                        <i class="fas fa-city"></i> ${group.province_name} - ${group.city_name}
+                    </div>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        ${group.neighborhoods.map(n => `
+                            <span class="location-tag">
+                                <i class="fas fa-map-pin"></i>
+                                ${n.name}
+                                <span class="remove-btn" onclick="removeLocation(${n.id})">&times;</span>
+                            </span>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(wrapper);
+            });
+        }
+
+        // ============================================================
+        // 13. تنظیم پیش‌فرض استان و شهرستان (گلستان و گرگان)
+        // ============================================================
+
+        function setDefaultLocation() {
+            // فقط در حالت ایجاد جدید (بدون انتخاب قبلی) اجرا شود
+            if (selectedLocations.length > 0) return;
+
+            const provinceSelect = document.getElementById('provinceSelect');
+            const citySelect = document.getElementById('citySelect');
+
+            // جستجوی استان گلستان
+            let golestanId = null;
+            for (let i = 0; i < provinceSelect.options.length; i++) {
+                if (provinceSelect.options[i].text === 'گلستان') {
+                    golestanId = provinceSelect.options[i].value;
+                    break;
+                }
+            }
+
+            if (!golestanId) {
+                console.warn('استان گلستان یافت نشد');
+                return;
+            }
+
+            // انتخاب استان
+            provinceSelect.value = golestanId;
+
+            // بارگذاری شهرستان‌ها
+            loadCities(false);
+
+            // بعد از بارگذاری شهرستان‌ها، شهرستان گرگان را انتخاب کن
+            const checkCity = setInterval(function() {
+                if (citySelect.options.length > 1) { // حداقل گزینه پیش‌فرض + یک شهر
+                    for (let i = 0; i < citySelect.options.length; i++) {
+                        if (citySelect.options[i].text === 'گرگان') {
+                            citySelect.value = citySelect.options[i].value;
+                            // بارگذاری محله‌ها
+                            loadNeighborhoods();
+                            clearInterval(checkCity);
+                            break;
+                        }
+                    }
+                    // اگر گرگان پیدا نشد، اولین شهرستان را انتخاب کن
+                    if (citySelect.value === '') {
+                        citySelect.value = citySelect.options[1]?.value || '';
+                        loadNeighborhoods();
+                    }
+                    clearInterval(checkCity);
+                }
+            }, 300);
+
+            // اگر بعد از ۵ ثانیه موفق نشد، متوقف کن
+            setTimeout(() => {
+                clearInterval(checkCity);
+            }, 5000);
+        }
+
+        // ============================================================
+        // 13.5. انتخاب مخاطب از دفترچه تلفن گوشی
+        // ============================================================
+
+        window.pickContact = async function() {
+            if (!('contacts' in navigator && 'ContactsManager' in window)) {
+                alert('⚠️ مرورگر شما از انتخاب مخاطب پشتیبانی نمی‌کند.\nلطفاً شماره را به‌صورت دستی وارد کنید.');
+                return;
+            }
+
+            try {
+                const props = ['tel'];
+                const opts = { multiple: false };
+                const contacts = await navigator.contacts.select(props, opts);
+
+                if (contacts.length > 0) {
+                    const contact = contacts[0];
+                    const tel = contact.tel && contact.tel[0] ? contact.tel[0] : '';
+
+                    if (tel) {
+                        let cleanedTel = tel.replace(/[^0-9+]/g, '');
+
+                        if (cleanedTel.startsWith('+98')) {
+                            cleanedTel = '0' + cleanedTel.substring(3);
+                        } else if (cleanedTel.startsWith('98')) {
+                            cleanedTel = '0' + cleanedTel.substring(2);
+                        }
+
+                        cleanedTel = cleanedTel.substring(0, 11);
+                        document.getElementById('mobile').value = cleanedTel;
+                    } else {
+                        alert('⚠️ این مخاطب شماره تلفن ندارد.');
+                    }
+                }
+            } catch (err) {
+                if (err.name === 'AbortError' || err.name === 'InvalidStateError') {
+                    console.log('کاربر انتخاب مخاطب را لغو کرد');
+                } else {
+                    console.error('خطا در انتخاب مخاطب:', err);
+                    alert('❌ خطا در دسترسی به مخاطبین: ' + err.message);
+                }
+            }
+        };
+
+        // مخفی کردن دکمه در صورت عدم پشتیبانی مرورگر
+        if (!('contacts' in navigator && 'ContactsManager' in window)) {
+            const pickBtn = document.getElementById('pickContactBtn');
+            if (pickBtn) {
+                pickBtn.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // 14. ارسال فرم - اعتبارسنجی
+        // ============================================================
+
+        document.getElementById('customerForm').addEventListener('submit', function(e) {
+            const customerType = document.getElementById('id_customer_type').value;
+
+            if (customerType === 'buyer') {
+                const budgetMin = document.getElementById('budget_min');
+                const budgetMax = document.getElementById('budget_max');
+
+                if (!budgetMin.value && !budgetMax.value) {
+                    e.preventDefault();
+                    alert('⚠️ برای مشتری خریدار، حداقل یکی از فیلدهای بودجه خرید باید پر شود');
+                    budgetMin.focus();
+                    return false;
+                }
+            } else if (customerType === 'tenant') {
+                const rentMin = document.getElementById('rent_min');
+                const rentMax = document.getElementById('rent_max');
+                const mortgageMin = document.getElementById('mortgage_min');
+                const mortgageMax = document.getElementById('mortgage_max');
+
+                if (!rentMin.value && !rentMax.value && !mortgageMin.value && !mortgageMax.value) {
+                    e.preventDefault();
+                    alert('⚠️ برای مشتری مستاجر، حداقل یکی از فیلدهای بودجه اجاره باید پر شود');
+                    rentMin.focus();
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        // ============================================================
+        // 15. مقداردهی اولیه
+        // ============================================================
+
+        {% if customer %}
+            // حالت ویرایش: بارگذاری مکان‌های ذخیره شده
+            setTimeout(function() {
+                loadInitialLocations();
+                // بعد از بارگذاری، اگر هیچ منطقه‌ای انتخاب نشده بود، پیش‌فرض را تنظیم کن
+                setTimeout(function() {
+                    if (selectedLocations.length === 0) {
+                        setDefaultLocation();
+                    }
+                }, 1000);
+            }, 300);
+        {% else %}
+            // حالت ایجاد جدید: مستقیماً پیش‌فرض را تنظیم کن
+            setTimeout(function() {
+                setDefaultLocation();
+            }, 500);
+        {% endif %}
+
+        // ============================================================
+        // 16. فعال‌سازی tooltipها (بوت‌استرپ)
+        // ============================================================
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+    });
+</script>
+{% endblock %}

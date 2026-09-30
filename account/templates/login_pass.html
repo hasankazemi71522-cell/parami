@@ -1,0 +1,590 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="FA-IR" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود با رمز عبور | پارمی - سیستم مدیریت املاک هوشمند</title>
+
+    <!-- فونت و آیکون‌ها -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'index/plugin/swiper/swiper-bundle.min.css' %}">
+    <link rel="stylesheet" href="{% static 'index/plugin/go-to-top/style.css' %}">
+    <link rel="stylesheet" href="{% static 'index/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'index/css/responsive.css' %}">
+
+    <style>
+        /* ============================================================
+           استایل‌های صفحه ورود با رمز عبور پارمی
+           ============================================================ */
+        :root {
+            --primary-purple: #6C2BD9;
+            --primary-purple-dark: #5A1FB5;
+            --primary-purple-light: #EDE4FF;
+            --gold: #FFD700;
+            --gold-light: #FFF8E0;
+            --teal: #00D4AA;
+            --teal-light: #E0FFF7;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            direction: rtl;
+            text-align: right;
+            background: #F8F7FC;
+            min-height: 100vh;
+        }
+
+        body.dark-theme {
+            background: #0A0A1A;
+        }
+
+        .bg-auth {
+            background: linear-gradient(135deg, #F8F7FC 0%, #EDE4FF 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+        body.dark-theme .bg-auth {
+            background: linear-gradient(135deg, #0A0A1A 0%, #1A0A3A 100%);
+        }
+
+        .auth-form {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 32px 28px !important;
+            box-shadow: 0 20px 60px rgba(108, 43, 217, 0.08);
+            border: 1px solid #E8E4F0;
+            transition: all 0.3s ease;
+            max-width: 480px;
+            width: 100%;
+        }
+        body.dark-theme .auth-form {
+            background: rgba(20, 20, 45, 0.85);
+            backdrop-filter: blur(20px);
+            border-color: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-form .logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .auth-form .logo-wrapper img {
+            height: 50px;
+            width: auto;
+        }
+        .auth-form .logo-wrapper .brand-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        body.dark-theme .auth-form .logo-wrapper .brand-name {
+            background: linear-gradient(135deg, #8B5CF6, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-form .form-title {
+            text-align: center;
+            color: #1A1A2E;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        body.dark-theme .auth-form .form-title {
+            color: #F1F5F9;
+        }
+
+        .auth-form .form-title .highlight {
+            color: #6C2BD9;
+        }
+        body.dark-theme .auth-form .form-title .highlight {
+            color: #8B5CF6;
+        }
+        .auth-form .form-title .sub {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: #8888AA;
+            margin-top: 2px;
+        }
+        body.dark-theme .auth-form .form-title .sub {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .comment-item {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .comment-item .form-control {
+            width: 100%;
+            padding: 14px 14px 4px 14px;
+            font-size: 14px;
+            border: 2px solid #E8E4F0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background-color: transparent;
+            direction: rtl;
+            color: #1A1A2E;
+            height: 52px;
+        }
+        body.dark-theme .comment-item .form-control {
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #F1F5F9;
+            background-color: transparent;
+        }
+        .comment-item .form-control:focus {
+            outline: none;
+            border-color: #6C2BD9;
+            box-shadow: 0 0 0 4px rgba(108, 43, 217, 0.1);
+        }
+        body.dark-theme .comment-item .form-control:focus {
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 4px rgba(108, 43, 217, 0.15);
+        }
+        .comment-item .form-control::placeholder {
+            opacity: 0;
+        }
+        .comment-item .form-control[dir="ltr"] {
+            text-align: left;
+        }
+        .comment-item .form-control[dir="ltr"] + .form-label.label-float {
+            right: 14px;
+            text-align: right;
+        }
+
+        .comment-item .form-label.label-float {
+            position: absolute;
+            right: 14px;
+            top: 15px;
+            font-size: 14px;
+            color: #8888AA;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            background-color: transparent;
+            padding: 0 4px;
+            margin: 0;
+            font-weight: 500;
+        }
+        body.dark-theme .comment-item .form-label.label-float {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .comment-item .form-control:focus + .form-label.label-float,
+        .comment-item .form-control:not(:placeholder-shown) + .form-label.label-float {
+            top: -8px;
+            right: 10px;
+            font-size: 11px;
+            color: #6C2BD9;
+            background-color: #FFFFFF;
+            padding: 0 6px;
+            font-weight: 600;
+        }
+        body.dark-theme .comment-item .form-control:focus + .form-label.label-float,
+        body.dark-theme .comment-item .form-control:not(:placeholder-shown) + .form-label.label-float {
+            background-color: rgba(20, 20, 45, 0.85);
+            color: #8B5CF6;
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(108, 43, 217, 0.2);
+        }
+        .btn-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(108, 43, 217, 0.3);
+            color: white;
+        }
+        .btn-main:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-main .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-left: 8px;
+        }
+        .btn-main.loading .spinner {
+            display: inline-block;
+        }
+        .btn-main.loading .btn-text {
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 8px;
+            margin-bottom: 0;
+            text-align: center;
+            display: none;
+            background: rgba(220, 53, 69, 0.06);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(220, 53, 69, 0.15);
+        }
+        body.dark-theme .error-message {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.2);
+        }
+        .error-message.show {
+            display: block;
+        }
+
+        .auth-links {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        .auth-link {
+            color: #6C2BD9;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            font-size: 13px;
+        }
+        .auth-link:hover {
+            color: #5A1FB5;
+            text-decoration: underline;
+        }
+        body.dark-theme .auth-link {
+            color: #8B5CF6;
+        }
+        body.dark-theme .auth-link:hover {
+            color: #C4A0FF;
+        }
+
+        .auth-divider {
+            color: #8888AA;
+            font-size: 13px;
+        }
+        body.dark-theme .auth-divider {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .terms-text {
+            font-size: 12px;
+            color: #8888AA;
+            text-align: center;
+            margin-top: 16px;
+        }
+        body.dark-theme .terms-text {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .terms-text a {
+            color: #6C2BD9;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+        body.dark-theme .terms-text a {
+            color: #8B5CF6;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #E8E4F0;
+        }
+        body.dark-theme .divider::before,
+        body.dark-theme .divider::after {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .divider span {
+            color: #8888AA;
+            font-size: 12px;
+        }
+        body.dark-theme .divider span {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .forgot-link {
+            display: block;
+            text-align: left;
+            margin-top: 4px;
+            font-size: 13px;
+        }
+        .forgot-link a {
+            color: #8888AA;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .forgot-link a:hover {
+            color: #6C2BD9;
+            text-decoration: underline;
+        }
+        body.dark-theme .forgot-link a {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        body.dark-theme .forgot-link a:hover {
+            color: #8B5CF6;
+        }
+
+        @media (max-width: 576px) {
+            .auth-form {
+                padding: 24px 16px !important;
+                border-radius: 16px;
+            }
+            .auth-form .logo-wrapper img {
+                height: 40px;
+            }
+            .auth-form .logo-wrapper .brand-name {
+                font-size: 1.2rem;
+            }
+            .comment-item .form-control {
+                height: 46px;
+                padding: 12px 12px 4px 12px;
+                font-size: 13px;
+            }
+            .comment-item .form-label.label-float {
+                top: 12px;
+                font-size: 13px;
+                right: 12px;
+            }
+            .btn-main {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            .auth-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+            }
+            .forgot-link {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="bg-auth">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-11 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+
+                <div class="auth-form">
+                    <!-- ===== لوگو و برند ===== -->
+                    <a href="{% url 'home_page' %}">
+                        <div class="logo-wrapper">
+                            <img src="{% static 'myassets/myimage/logo/logo.jpeg' %}" alt="پارمی">
+                            <span class="brand-name">پارمی</span>
+                        </div>
+                    </a>
+
+                    <!-- ===== عنوان ===== -->
+                    <div class="form-title" id="form-title">
+                        ورود با <span class="highlight">رمز عبور</span>
+                        <div class="sub">به سامانه مدیریت املاک پارمی خوش آمدید</div>
+                    </div>
+
+                    <!-- ===== فرم ===== -->
+                    <form id="form-auth" class="py-2">
+                        {% csrf_token %}
+
+                        <!-- نام کاربری -->
+                        <div class="comment-item">
+                            <input type="text" class="form-control" id="username" dir="rtl" placeholder=" ">
+                            <label for="username" class="form-label label-float">نام کاربری یا شماره موبایل</label>
+                        </div>
+
+                        <!-- رمز عبور -->
+                        <div class="comment-item">
+                            <input type="password" class="form-control" id="password" dir="ltr" placeholder=" ">
+                            <label for="password" class="form-label label-float">رمز عبور</label>
+                        </div>
+
+                        <!-- لینک فراموشی رمز -->
+                        <div class="forgot-link">
+                            <a href="{% url 'account:forgot_password' %}">
+                                <i class="bi bi-question-circle me-1"></i> رمز عبور خود را فراموش کرده‌اید؟
+                            </a>
+                        </div>
+
+                        <!-- پیام خطا -->
+                        <div id="errorMsg" class="error-message"></div>
+
+                        <!-- دکمه ورود -->
+                        <div class="text-center mt-3">
+                            <button type="button" id="btn-login" class="btn-main">
+                                <span class="spinner"></span>
+                                <span class="btn-text"><i class="bi bi-box-arrow-in-left me-2"></i> ورود به حساب کاربری</span>
+                            </button>
+                        </div>
+
+                        <!-- ===== لینک‌های کمکی ===== -->
+                        <div class="divider"><span>یا</span></div>
+
+                        <div class="auth-links">
+                            <a href="{% url 'account:login' %}" class="auth-link">
+                                <i class="bi bi-send me-1"></i> ورود با پیامک
+                            </a>
+                            <span class="auth-divider">|</span>
+                            <a href="{% url 'account:register' %}" class="auth-link">
+                                <i class="bi bi-person-plus me-1"></i> ثبت نام
+                            </a>
+                        </div>
+
+                    </form>
+
+                    <!-- ===== شرایط و قوانین ===== -->
+                    <div class="terms-text">
+                        با ورود یا ثبت نام در پارمی، شما
+                        <a href="{% url 'rules' %}">شرایط و قوانین</a>
+                        و
+                        <a href="{% url 'privacy' %}">حریم خصوصی</a>
+                        را می‌پذیرید.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+اسکریپت‌ها
+============================================================ -->
+<script src="{% static 'index/js/jquery-3.7.1.min.js' %}"></script>
+<script>
+    function loginUser() {
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value.trim();
+        var errorDiv = document.getElementById('errorMsg');
+        var loginBtn = document.getElementById('btn-login');
+
+        // مخفی کردن پیام خطای قبلی
+        errorDiv.classList.remove('show');
+        errorDiv.textContent = '';
+
+        // اعتبارسنجی
+        if (!username) {
+            errorDiv.textContent = '❌ لطفاً نام کاربری یا شماره موبایل خود را وارد کنید';
+            errorDiv.classList.add('show');
+            document.getElementById('username').focus();
+            return;
+        }
+        if (!password) {
+            errorDiv.textContent = '❌ لطفاً رمز عبور خود را وارد کنید';
+            errorDiv.classList.add('show');
+            document.getElementById('password').focus();
+            return;
+        }
+
+        // نمایش حالت بارگذاری
+        loginBtn.disabled = true;
+        loginBtn.classList.add('loading');
+        loginBtn.querySelector('.btn-text').innerHTML = '⏳ در حال بررسی...';
+
+        $.ajax({
+            type: 'GET',
+            url: '{% url "account:login_pass" %}',
+            data: {
+                i: 'login_user',
+                username: username,
+                password: password,
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data['i'] === 1 || data['ok'] === 'True') {
+                    // ورود موفق
+                    if (data['user_id']) {
+                        window.location.href = '/dashboard/';
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    // خطا
+                    var errorMsg = data['msg'] || '❌ نام کاربری یا رمز عبور اشتباه است';
+                    errorDiv.textContent = errorMsg;
+                    errorDiv.classList.add('show');
+
+                    // بازگرداندن دکمه
+                    loginBtn.disabled = false;
+                    loginBtn.classList.remove('loading');
+                    loginBtn.querySelector('.btn-text').innerHTML = '<i class="bi bi-box-arrow-in-left me-2"></i> ورود به حساب کاربری';
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('خطا:', error);
+                errorDiv.textContent = '❌ خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.';
+                errorDiv.classList.add('show');
+
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('loading');
+                loginBtn.querySelector('.btn-text').innerHTML = '<i class="bi bi-box-arrow-in-left me-2"></i> ورود به حساب کاربری';
+            }
+        });
+    }
+
+    // ===== رویدادها =====
+    document.getElementById('btn-login').addEventListener('click', loginUser);
+
+    // ورود با کلید Enter در فیلد رمز عبور
+    document.getElementById('password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            loginUser();
+        }
+    });
+
+    // حرکت به فیلد رمز عبور با Enter در نام کاربری
+    document.getElementById('username').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('password').focus();
+        }
+    });
+
+    // ===== پشتیبانی از تم تاریک =====
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-theme');
+    }
+</script>
+
+</body>
+</html>

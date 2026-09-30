@@ -1,0 +1,59 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">رد</span>
+        <span>درخواست برداشت</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-times"></i> رد درخواست برداشت</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <strong>متقاضی:</strong> {{ withdrawal.user.get_full_name }} ({{ withdrawal.user.mobile }})<br>
+                <strong>مبلغ درخواستی:</strong> {{ withdrawal.amount }} تومان<br>
+                <strong>موجودی کیف پول:</strong> {{ withdrawal.user.wallet|default:0 }} تومان<br>
+                <strong>بانک:</strong> {{ withdrawal.bank_name }} | <strong>شماره حساب:</strong> {{ withdrawal.account_number }}
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">دلیل رد <span class="text-danger">*</span></label>
+                    <textarea name="reason" class="form-control" rows="4" required placeholder="لطفاً دلیل رد درخواست را وارد کنید..."></textarea>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> با رد این درخواست، هیچ مبلغی از کیف پول کسر نمی‌شود.
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times"></i> رد درخواست
+                    </button>
+                    <a href="{% url 'transaction:withdrawal_request_list_admin' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> بازگشت
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

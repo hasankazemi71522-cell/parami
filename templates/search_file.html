@@ -1,0 +1,567 @@
+<!-- templates/estate/property/property_search.html -->
+{% extends 'shared_site/_Mainlayout.html' %}
+{% load static %}
+
+{% block Header_ref %}
+{{ block.super }}
+<style>
+    /* استایل‌های کارت‌ها (مشابه صفحه اصلی) */
+    .property-card {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--bs-border-color);
+        transition: all 0.35s ease;
+        height: 100%;
+        background: var(--bs-body-bg);
+    }
+    .property-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 60px rgba(108,43,217,0.12);
+        border-color: rgba(108,43,217,0.2);
+    }
+    .property-card .card-img-wrap {
+        position: relative;
+        overflow: hidden;
+        height: 200px;
+    }
+    .property-card .card-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .property-card:hover .card-img-wrap img {
+        transform: scale(1.05);
+    }
+    .property-card .badge-contract {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 4px 14px;
+        border-radius: 50px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        background: rgba(0,0,0,0.7);
+        color: #fff;
+        backdrop-filter: blur(4px);
+    }
+    .badge-contract.sale { background: #dc3545; }
+    .badge-contract.rent { background: #0d6efd; }
+    .badge-contract.partnership { background: #6C2BD9; }
+    .badge-contract.both { background: #fd7e14; }
+    .badge-contract.investment { background: #20c997; }
+
+    .badge-featured {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 4px 14px;
+        border-radius: 50px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #1A1A2E;
+    }
+
+    .property-card .card-body {
+        padding: 1.2rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .property-card .property-title {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--bs-body-color);
+        text-decoration: none;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 48px;
+    }
+    .property-card .property-title:hover { color: #6C2BD9; }
+
+    .property-card .property-location {
+        font-size: 0.8rem;
+        color: var(--bs-secondary-color);
+        margin-top: 4px;
+    }
+    .property-card .property-location i { color: #6C2BD9; font-size: 0.7rem; margin-left: 4px; }
+
+    .property-card .property-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 12px;
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color);
+        margin-top: 6px;
+    }
+    .property-card .property-meta i { color: #6C2BD9; }
+
+    .property-card .property-price {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #6C2BD9;
+        margin-top: 8px;
+    }
+    .property-card .property-price small {
+        font-size: 0.7rem;
+        font-weight: 400;
+        color: var(--bs-secondary-color);
+    }
+
+    .property-card .card-footer-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--bs-border-color);
+    }
+    .property-card .card-footer-actions .date {
+        font-size: 0.7rem;
+        color: var(--bs-secondary-color);
+    }
+    .property-card .card-footer-actions .date i { color: #FFD700; }
+    .property-card .btn-detail {
+        border-radius: 50px;
+        padding: 4px 18px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 2px solid #6C2BD9;
+        color: #6C2BD9;
+        background: transparent;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+    .property-card .btn-detail:hover {
+        background: #6C2BD9;
+        color: #fff;
+        transform: translateX(-4px);
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-4px); }
+    .stat-card .stat-number { font-size: 1.8rem; font-weight: 800; }
+    .stat-card .stat-label { font-size: 0.8rem; opacity: 0.8; }
+
+    /* پنل جستجو */
+    #searchPanel .form-label { font-weight: 600; font-size: 0.8rem; }
+    #searchPanel .money-display {
+        direction: ltr;
+        font-weight: bold;
+        color: #28a745;
+        font-size: 0.8rem;
+    }
+    .pagination .page-link {
+        border-radius: 8px;
+        margin: 0 3px;
+        color: var(--bs-body-color);
+        border-color: var(--bs-border-color);
+    }
+    .pagination .page-item.active .page-link {
+        background: #6C2BD9;
+        border-color: #6C2BD9;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- ====== عنوان ====== -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <h4 class="fw-bold"><i class="fas fa-building text-primary me-2"></i> جستجوی فایل‌ها</h4>
+        <span class="text-muted small">تعداد کل: {{ total_count }}</span>
+    </div>
+
+    <!-- ====== دکمه‌های عملیات ====== -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#searchPanel">
+                <i class="fas fa-search"></i> جستجوی پیشرفته
+                {% if has_filters %}<span class="badge bg-danger ms-1">فعال</span>{% endif %}
+            </button>
+            {% if has_filters %}
+                <a href="{% url 'search_file' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-times"></i> پاک کردن فیلترها
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ====== پنل جستجوی پیشرفته ====== -->
+    <div class="collapse mb-4 {% if has_filters %}show{% endif %}" id="searchPanel">
+        <div class="card card-body bg-light">
+            <form method="GET" class="row g-3" id="searchForm">
+
+                <!-- جستجوی عمومی -->
+                <div class="col-12"><h6 class="border-bottom pb-2"><i class="fas fa-search"></i> جستجوی عمومی</h6></div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">جستجو در عنوان، آدرس، توضیحات</label>
+                    <input type="text" name="search" class="form-control" placeholder="متن مورد نظر..." value="{{ filter_search }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">نوع ملک</label>
+                    <select name="property_type" class="form-select">
+                        <option value="">همه</option>
+                        {% for pt in property_types %}
+                            <option value="{{ pt.id }}" {% if filter_property_type|add:"0" == pt.id %}selected{% endif %}>{{ pt.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">نوع قرارداد</label>
+                    <select name="contract_type" class="form-select">
+                        <option value="">همه</option>
+                        {% for value, label in contract_choices %}
+                            <option value="{{ value }}" {% if filter_contract_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- مکان -->
+                <div class="col-12 mt-2"><h6 class="border-bottom pb-2"><i class="fas fa-map-marker-alt"></i> مکان</h6></div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">استان</label>
+                    <select name="province" class="form-select" id="searchProvince" onchange="loadCities()">
+                        <option value="">همه</option>
+                        {% for p in provinces %}
+                            <option value="{{ p.id }}" {% if filter_province|add:"0" == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">شهر</label>
+                    <select name="city" class="form-select" id="searchCity" onchange="loadNeighborhoods()">
+                        <option value="">همه</option>
+                        {% if filter_city %}
+                            <option value="{{ filter_city }}" selected>{{ filter_city_name|default:"" }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">محله</label>
+                    <select name="neighborhood" class="form-select" id="searchNeighborhood">
+                        <option value="">همه</option>
+                        {% if filter_neighborhood %}
+                            <option value="{{ filter_neighborhood }}" selected>{{ filter_neighborhood_name|default:"" }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- قیمت‌ها -->
+                <div class="col-12 mt-2"><h6 class="border-bottom pb-2"><i class="fas fa-money-bill-wave"></i> قیمت‌ها (تومان)</h6></div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">قیمت فروش از</label>
+                    <input type="text" name="min_price" class="form-control money-input" placeholder="حداقل" value="{{ filter_min_price }}" oninput="formatMoney(this)">
+                    <small class="text-muted money-display" id="min_price_display"></small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">قیمت فروش تا</label>
+                    <input type="text" name="max_price" class="form-control money-input" placeholder="حداکثر" value="{{ filter_max_price }}" oninput="formatMoney(this)">
+                    <small class="text-muted money-display" id="max_price_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">رهن از</label>
+                    <input type="text" name="min_mortgage" class="form-control money-input" placeholder="حداقل" value="{{ filter_min_mortgage }}" oninput="formatMoney(this)">
+                    <small class="text-muted money-display" id="min_mortgage_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">رهن تا</label>
+                    <input type="text" name="max_mortgage" class="form-control money-input" placeholder="حداکثر" value="{{ filter_max_mortgage }}" oninput="formatMoney(this)">
+                    <small class="text-muted money-display" id="max_mortgage_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">اجاره از</label>
+                    <input type="text" name="min_rent" class="form-control money-input" placeholder="حداقل" value="{{ filter_min_rent }}" oninput="formatMoney(this)">
+                    <small class="text-muted money-display" id="min_rent_display"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">اجاره تا</label>
+                    <input type="text" name="max_rent" class="form-control money-input" placeholder="حداکثر" value="{{ filter_max_rent }}" oninput="formatMoney(this)">
+                    <small class="text-muted money-display" id="max_rent_display"></small>
+                </div>
+
+                <!-- مشخصات فیزیکی -->
+                <div class="col-12 mt-2"><h6 class="border-bottom pb-2"><i class="fas fa-ruler-combined"></i> مشخصات فیزیکی</h6></div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">متراژ از (m²)</label>
+                    <input type="number" name="min_area" class="form-control" placeholder="حداقل" value="{{ filter_min_area }}" step="0.1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">متراژ تا (m²)</label>
+                    <input type="number" name="max_area" class="form-control" placeholder="حداکثر" value="{{ filter_max_area }}" step="0.1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">سال ساخت از</label>
+                    <input type="number" name="built_year_min" class="form-control" placeholder="از" value="{{ filter_built_year_min }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">سال ساخت تا</label>
+                    <input type="number" name="built_year_max" class="form-control" placeholder="تا" value="{{ filter_built_year_max }}">
+                </div>
+
+                <!-- امکانات -->
+                <div class="col-12 mt-2"><h6 class="border-bottom pb-2"><i class="fas fa-check-circle"></i> امکانات</h6></div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">پارکینگ</label>
+                    <select name="parking_type" class="form-select">
+                        <option value="">همه</option>
+                        {% for value, label in parking_choices %}
+                            <option value="{{ value }}" {% if filter_parking_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">آسانسور</label>
+                    <select name="has_elevator" class="form-select">
+                        <option value="">همه</option>
+                        <option value="True" {% if filter_has_elevator == 'True' %}selected{% endif %}>دارد</option>
+                        <option value="False" {% if filter_has_elevator == 'False' %}selected{% endif %}>ندارد</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">تعداد اتاق</label>
+                    <select name="rooms" class="form-select">
+                        <option value="">همه</option>
+                        <option value="1" {% if filter_rooms == '1' %}selected{% endif %}>۱</option>
+                        <option value="2" {% if filter_rooms == '2' %}selected{% endif %}>۲</option>
+                        <option value="3" {% if filter_rooms == '3' %}selected{% endif %}>۳</option>
+                        <option value="4" {% if filter_rooms == '4' %}selected{% endif %}>۴</option>
+                        <option value="5" {% if filter_rooms == '5' %}selected{% endif %}>۵+</option>
+                    </select>
+                </div>
+
+                <!-- سایر -->
+                <div class="col-12 mt-2"><h6 class="border-bottom pb-2"><i class="fas fa-sliders-h"></i> سایر</h6></div>
+                <div class="col-md-4">
+                    <div class="form-check mt-2">
+                        <input type="checkbox" name="is_featured" value="True" class="form-check-input" id="is_featured" {% if filter_is_featured == 'True' %}checked{% endif %}>
+                        <label class="form-check-label" for="is_featured">فقط فایل‌های ویژه</label>
+                    </div>
+                </div>
+
+                <!-- دکمه‌ها -->
+                <div class="col-12 mt-3">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> جستجو</button>
+                        <button type="reset" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-undo"></i> بازنشانی</button>
+                        <a href="{% url 'search_file' %}" class="btn btn-outline-danger"><i class="fas fa-times"></i> پاک کردن همه</a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== نتایج به صورت کارت ====== -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">{{ properties.paginator.count }} فایل یافت شد</span>
+            </div>
+        </div>
+    </div>
+
+    {% if properties %}
+        <div class="row g-4">
+            {% for obj in properties %}
+                <div class="col-md-3">
+                    <div class="property-card">
+                        <div class="card-img-wrap">
+                            {% if obj.get_main_image %}
+                                <img src="{{ obj.get_main_image.image.url }}" alt="{{ obj.title }}">
+                            {% else %}
+                                <img src="{% static 'myassets/myimage/logo/logo.jpeg' %}" alt="بدون تصویر">
+                            {% endif %}
+                            <span class="badge-contract
+                                {% if obj.contract_type == 'sale' %}sale
+                                {% elif obj.contract_type == 'rent' %}rent
+                                {% elif obj.contract_type == 'partnership' %}partnership
+                                {% elif obj.contract_type == 'both' %}both
+                                {% elif obj.contract_type == 'investment' %}investment
+                                {% endif %}">
+                                {{ obj.get_contract_type_display }}
+                            </span>
+                            {% if obj.is_featured %}
+                                <span class="badge-featured"><i class="bi bi-star-fill"></i> ویژه</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <a href="{% url 'property_detail' obj.id %}" class="property-title">
+                                {{ obj.title|default:obj.full_location|truncatechars:40 }}
+                            </a>
+                            <div class="property-location">
+                                <i class="bi bi-geo-alt"></i>
+                                {% if obj.province %}{{ obj.province.name }}{% endif %}
+                                {% if obj.city %} - {{ obj.city.name }}{% endif %}
+                                {% if obj.neighborhood %} - {{ obj.neighborhood.name }}{% endif %}
+                            </div>
+                            <div class="property-meta">
+                                {% if obj.area %}<span><i class="bi bi-aspect-ratio"></i> {{ obj.area }} m²</span>{% endif %}
+                                {% if obj.rooms %}<span><i class="bi bi-bed"></i> {{ obj.rooms }} خواب</span>{% endif %}
+                                {% if obj.built_year %}<span><i class="bi bi-calendar"></i> {{ obj.built_year }}</span>{% endif %}
+                            </div>
+                            <div class="property-price">
+                                {% if obj.contract_type == 'sale' or obj.contract_type == 'both' or obj.contract_type == 'partnership' or obj.contract_type == 'investment' %}
+                                    {% if obj.price %}
+                                        {{ obj.price|floatformat:0 }} <small>تومان</small>
+                                    {% else %}
+                                        <span class="text-muted">قیمت نامشخص</span>
+                                    {% endif %}
+                                {% elif obj.contract_type == 'rent' %}
+                                    {% if obj.mortgage_price or obj.rent_price %}
+                                        {% if obj.mortgage_price %}رهن {{ obj.mortgage_price|floatformat:0 }}{% endif %}
+                                        {% if obj.rent_price %}<br><span class="text-muted" style="font-size:0.8rem;">اجاره {{ obj.rent_price|floatformat:0 }} تومان</span>{% endif %}
+                                    {% else %}
+                                        <span class="text-muted">قیمت نامشخص</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">قیمت نامشخص</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer-actions">
+                                <span class="date"><i class="bi bi-clock"></i> {{ obj.created_at|date:"Y/m/d" }}</span>
+                                <a href="{% url 'property_detail' obj.id %}" class="btn-detail">مشاهده <i class="bi bi-arrow-left"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- ====== صفحه‌بندی ====== -->
+        {% if properties.paginator.num_pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center flex-wrap">
+                {% if properties.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-right"></i></a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ properties.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-right"></i></a></li>
+                {% endif %}
+
+                {% for num in properties.paginator.page_range %}
+                    {% if properties.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > properties.number|add:'-3' and num < properties.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if properties.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ properties.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-left"></i></a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ properties.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-left"></i></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-building fa-3x text-muted d-block mb-3"></i>
+            <h4 class="text-muted">هیچ فایلی با این فیلترها یافت نشد</h4>
+            <p class="text-muted">لطفاً فیلترهای خود را تغییر دهید.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // ===== فرمت اعداد پولی =====
+    function formatMoney(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        input.value = value;
+        const displayId = input.id + '_display';
+        const display = document.getElementById(displayId);
+        if (display) {
+            if (value) {
+                let formatted = new Intl.NumberFormat('fa-IR').format(parseInt(value));
+                display.textContent = '💰 ' + formatted + ' تومان';
+            } else {
+                display.textContent = '';
+            }
+        }
+    }
+
+    document.querySelectorAll('.money-input').forEach(el => {
+        if (el.value) formatMoney(el);
+        el.addEventListener('input', function() { formatMoney(this); });
+    });
+
+    // ===== بارگذاری شهرها و محله‌ها =====
+    function loadCities() {
+        const provinceId = document.getElementById('searchProvince').value;
+        const citySelect = document.getElementById('searchCity');
+        const neighborhoodSelect = document.getElementById('searchNeighborhood');
+
+        citySelect.innerHTML = '<option value="">همه</option>';
+        neighborhoodSelect.innerHTML = '<option value="">همه</option>';
+
+        if (!provinceId) return;
+
+        citySelect.innerHTML = '<option value="">⏳ در حال بارگذاری...</option>';
+        fetch(`/estate/api/cities-by-province/?province_id=${provinceId}`)
+            .then(r => r.json())
+            .then(data => {
+                citySelect.innerHTML = '<option value="">همه</option>';
+                if (data.success && data.cities) {
+                    data.cities.forEach(city => {
+                        const opt = document.createElement('option');
+                        opt.value = city.id;
+                        opt.textContent = city.name;
+                        citySelect.appendChild(opt);
+                    });
+                }
+            });
+    }
+
+    function loadNeighborhoods() {
+        const cityId = document.getElementById('searchCity').value;
+        const neighborhoodSelect = document.getElementById('searchNeighborhood');
+        neighborhoodSelect.innerHTML = '<option value="">همه</option>';
+        if (!cityId) return;
+        neighborhoodSelect.innerHTML = '<option value="">⏳ در حال بارگذاری...</option>';
+        fetch(`/estate/api/neighborhoods-by-city/?city_id=${cityId}`)
+            .then(r => r.json())
+            .then(data => {
+                neighborhoodSelect.innerHTML = '<option value="">همه</option>';
+                if (data.success && data.neighborhoods) {
+                    data.neighborhoods.forEach(n => {
+                        const opt = document.createElement('option');
+                        opt.value = n.id;
+                        opt.textContent = n.name;
+                        neighborhoodSelect.appendChild(opt);
+                    });
+                }
+            });
+    }
+
+    // ===== بازنشانی فرم =====
+    function resetForm() {
+        document.getElementById('searchForm').reset();
+        document.querySelectorAll('.money-display').forEach(el => el.textContent = '');
+        loadCities();
+        document.getElementById('searchForm').submit();
+    }
+
+    // ===== مقداردهی اولیه =====
+    {% if filter_province %}
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCities();
+            {% if filter_city %}
+                setTimeout(() => {
+                    document.getElementById('searchCity').value = '{{ filter_city }}';
+                    loadNeighborhoods();
+                }, 300);
+            {% endif %}
+        });
+    {% endif %}
+</script>
+{% endblock %}

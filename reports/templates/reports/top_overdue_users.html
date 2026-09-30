@@ -1,0 +1,50 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">کاربران</span>
+            <span>تاخیردار</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+                    <div class="container-fluid">
+                        {% if users %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>نام کاربر</th>
+                                            <th>کل فرم‌ها</th>
+                                            <th>تاخیر</th>
+                                            <th>در حال اجرا</th>
+                                            <th>نرخ تاخیر</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for u in users %}
+                                            <tr>
+                                                <td>{{ forloop.counter }}</td>
+                                                <td><strong>{{ u.get_full_name|default:u.username }}</strong></td>
+                                                <td>{{ u.total_forms }}</td>
+                                                <td><span class="badge bg-danger">{{ u.overdue_forms }}</span></td>
+                                                <td><span class="badge bg-warning">{{ u.in_progress_forms }}</span></td>
+                                                <td>
+                                                    <div class="progress">
+                                                        <div class="progress-bar bg-danger" style="width: {{ u.overdue_rate }}%;">{{ u.overdue_rate }}%</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-success">✅ هیچ کاربر تاخیرداری وجود ندارد.</div>
+                        {% endif %}
+                    </div>
+                </div>
+{% endblock %}

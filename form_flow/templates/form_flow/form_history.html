@@ -1,0 +1,118 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+{% load form_filters %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">تاریخچه</span>
+            <span>فرم</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            <div class="card mb-3">
+                <div class="card-header dark_back_color">
+                    <h5>{{ instance.custom_name|default:instance.title }}</h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <!-- اطلاعات کلی -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p><strong>وضعیت:</strong> {{ instance.get_status_display }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>ایجاد شده توسط:</strong> {{ instance.created_by.get_full_name }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>تاریخ ایجاد:</strong> {{ instance.created_at|date:"Y/m/d H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- تاریخچه مراحل -->
+                    <h6>📊 تاریخچه مراحل</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>مرحله</th>
+                                    <th>تکمیل شده توسط</th>
+                                    <th>زمان شروع</th>
+                                    <th>زمان تکمیل</th>
+                                    <th>مدت زمان</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for step in step_history %}
+                                    <tr>
+                                        <td><strong>مرحله {{ step.step_number }}</strong></td>
+                                        <td>{{ step.completed_by_name|default:"-" }}</td>
+                                        <td>{{ step.started_at|persian_date }}</td>
+                                        <td>{{ step.completed_at|persian_date|default:"در حال انجام" }}</td>
+                                        <td>{{ step.duration_hours|format_duration }}</td>
+                                        <td>
+                                            {% if step.was_overdue %}
+                                                <span class="badge bg-danger">تاخیر</span>
+                                            {% elif step.is_active %}
+                                                <span class="badge bg-warning">در حال انجام</span>
+                                            {% else %}
+                                                <span class="badge bg-success">تکمیل</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="6" class="text-center">هیچ مرحله‌ای تکمیل نشده</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+
+                    <!-- تاریخچه فیلدها -->
+                    <h6>✏️ تاریخچه تغییرات فیلدها</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>فیلد</th>
+                                    <th>مقدار</th>
+                                    <th>تکمیل شده توسط</th>
+                                    <th>زمان</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fv in field_history %}
+                                    <tr>
+                                        <td>{{ fv.instance_field.field_title }}</td>
+                                        <td>
+                                            {% if fv.file_value %}
+                                                <a href="{{ fv.file_value.url }}" target="_blank">📎 فایل</a>
+                                            {% elif fv.image_value %}
+                                                <img src="{{ fv.image_value.url }}" style="max-width:50px; max-height:50px;">
+                                            {% else %}
+                                                {{ fv.value|default:"-" }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ fv.filled_by.get_full_name|default:"-" }}</td>
+                                        <td>{{ fv.filled_at|date:"Y/m/d H:i" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center">هیچ تغییری ثبت نشده</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{% url 'form_flow:form_detail' instance.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-right"></i> بازگشت
+            </a>
+        </div>
+    </div>
+{% endblock %}

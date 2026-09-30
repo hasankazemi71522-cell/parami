@@ -1,0 +1,874 @@
+{% extends 'shared_site/_Mainlayout.html' %}
+{% load static %}
+
+{% block Header_ref %}
+<style>
+    /* ============================================================
+       استایل‌های صفحه همکاری - کاملاً هماهنگ با تم
+       ============================================================ */
+
+    /* ===== هیرو ===== */
+    .hero-cooperate {
+        background: var(--bs-body-bg);
+        border-radius: 0 0 50px 50px;
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        padding: 120px 0 80px;
+        transition: all 0.3s ease;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .hero-cooperate .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(100px);
+        animation: orbFloat 20s ease-in-out infinite;
+        pointer-events: none;
+        display: none;
+    }
+    body.dark-theme .hero-cooperate .orb {
+        display: block;
+    }
+    body.dark-theme .hero-cooperate .orb-1 {
+        width: 400px;
+        height: 400px;
+        background: rgba(108, 43, 217, 0.25);
+        top: -100px;
+        right: -100px;
+    }
+    body.dark-theme .hero-cooperate .orb-2 {
+        width: 300px;
+        height: 300px;
+        background: rgba(0, 212, 170, 0.15);
+        bottom: -50px;
+        left: -50px;
+        animation-delay: -7s;
+    }
+    body.dark-theme .hero-cooperate .orb-3 {
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 215, 0, 0.1);
+        top: 40%;
+        right: 40%;
+        animation-delay: -14s;
+    }
+
+    @keyframes orbFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    /* ===== متن‌ها ===== */
+    .hero-cooperate h1 {
+        color: var(--bs-body-color);
+    }
+    .hero-cooperate .text-muted-custom {
+        color: var(--bs-secondary-color) !important;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #6C2BD9, #00D4AA);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    body.dark-theme .text-gradient {
+        background: linear-gradient(135deg, #8B5CF6, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* ===== نشان و برچسب ===== */
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bs-tertiary-bg);
+        padding: 6px 20px;
+        border-radius: 50px;
+        color: var(--bs-primary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid var(--bs-border-color);
+        margin-bottom: 24px;
+    }
+    body.dark-theme .hero-badge {
+        background: rgba(108, 43, 217, 0.12);
+        color: #8B5CF6;
+        border-color: rgba(108, 43, 217, 0.15);
+    }
+
+    .hero-badge .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        animation: pulseDot 2s ease-in-out infinite;
+        display: inline-block;
+    }
+    body.dark-theme .hero-badge .pulse-dot {
+        background: #00D4AA;
+    }
+
+    @keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.6); }
+    }
+
+    /* ===== دکمه‌ها ===== */
+    .btn-primary-glow {
+        background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+        color: white;
+        border: none;
+        padding: 14px 36px;
+        border-radius: 50px;
+        font-weight: 700;
+        transition: all 0.4s ease;
+        box-shadow: 0 0 30px rgba(108, 43, 217, 0.15);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .btn-primary-glow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 40px rgba(108, 43, 217, 0.25);
+        color: white;
+    }
+    body.dark-theme .btn-primary-glow {
+        box-shadow: 0 0 30px rgba(108, 43, 217, 0.2);
+    }
+    body.dark-theme .btn-primary-glow:hover {
+        box-shadow: 0 8px 40px rgba(108, 43, 217, 0.35);
+    }
+
+    .btn-secondary-outline {
+        background: transparent;
+        border: 2px solid var(--bs-border-color);
+        color: var(--bs-body-color);
+        padding: 14px 36px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.4s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .btn-secondary-outline:hover {
+        background: var(--bs-tertiary-bg);
+        border-color: var(--bs-primary);
+        color: var(--bs-primary);
+        transform: translateY(-3px);
+    }
+
+    .btn-call {
+        background: linear-gradient(135deg, #00D4AA, #00b894);
+        color: white;
+        border: none;
+        padding: 16px 48px;
+        border-radius: 50px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        transition: all 0.4s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 0 40px rgba(0, 212, 170, 0.2);
+        animation: pulseCall 2s ease-in-out infinite;
+    }
+    .btn-call:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 50px rgba(0, 212, 170, 0.35);
+        color: white;
+    }
+    @keyframes pulseCall {
+        0%, 100% { box-shadow: 0 0 40px rgba(0, 212, 170, 0.2); }
+        50% { box-shadow: 0 0 60px rgba(0, 212, 170, 0.4); }
+    }
+
+    .btn-cta-secondary {
+        background: var(--bs-tertiary-bg);
+        border: 2px solid var(--bs-border-color);
+        color: var(--bs-body-color);
+        padding: 14px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.4s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .btn-cta-secondary:hover {
+        background: var(--bs-secondary-bg);
+        border-color: var(--bs-primary);
+        color: var(--bs-primary);
+        transform: translateY(-3px);
+    }
+
+    /* ===== کارت‌ها ===== */
+    .cooperate-card {
+        background: var(--bs-body-bg);
+        border-radius: 20px;
+        padding: 32px 24px;
+        border: 1px solid var(--bs-border-color);
+        height: 100%;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+    body.dark-theme .cooperate-card {
+        background: var(--bs-secondary-bg);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .cooperate-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #6C2BD9, #00D4AA, #FFD700);
+        transform: scaleX(0);
+        transition: all 0.5s ease;
+        transform-origin: right;
+    }
+    .cooperate-card:hover::after {
+        transform: scaleX(1);
+    }
+    .cooperate-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--bs-primary);
+        box-shadow: 0 20px 60px rgba(108, 43, 217, 0.08);
+    }
+
+    .cooperate-card .icon-wrapper {
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bs-tertiary-bg);
+        border-radius: 16px;
+        font-size: 2rem;
+        color: var(--bs-primary);
+        margin-bottom: 1rem;
+        transition: all 0.4s ease;
+    }
+    body.dark-theme .cooperate-card .icon-wrapper {
+        background: rgba(108, 43, 217, 0.12);
+        color: #8B5CF6;
+    }
+    .cooperate-card:hover .icon-wrapper {
+        background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+        color: white;
+        transform: scale(1.05) rotate(-5deg);
+        box-shadow: 0 0 30px rgba(108, 43, 217, 0.15);
+    }
+
+    .cooperate-card h5 {
+        color: var(--bs-body-color);
+        font-size: 1.2rem;
+    }
+
+    .cooperate-card .role-badge {
+        display: inline-block;
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-primary);
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 3px 14px;
+        border-radius: 50px;
+        border: 1px solid var(--bs-border-color);
+        margin-top: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    body.dark-theme .cooperate-card .role-badge {
+        background: rgba(108, 43, 217, 0.12);
+        color: #8B5CF6;
+        border-color: rgba(108, 43, 217, 0.06);
+    }
+
+    .cooperate-card ul {
+        padding: 0;
+        list-style: none;
+        margin-top: 12px;
+    }
+    .cooperate-card ul li {
+        margin-bottom: 0.6rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: var(--bs-secondary-color);
+        line-height: 1.5;
+    }
+
+    .cooperate-card ul li .check-icon {
+        color: #00D4AA;
+        font-size: 0.7rem;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bs-tertiary-bg);
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    body.dark-theme .cooperate-card ul li .check-icon {
+        background: rgba(0, 212, 170, 0.08);
+        color: #34d399;
+    }
+
+    /* ===== بخش مزایا ===== */
+    .benefits-section {
+        padding: 60px 0;
+        background: var(--bs-tertiary-bg);
+        border-radius: 40px;
+        margin: 20px 0;
+    }
+    body.dark-theme .benefits-section {
+        background: rgba(20, 20, 45, 0.4);
+    }
+
+    .benefit-item {
+        text-align: center;
+        padding: 24px 16px;
+        transition: all 0.3s ease;
+        border-radius: 16px;
+    }
+    .benefit-item:hover {
+        transform: translateY(-4px);
+        background: var(--bs-body-bg);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    }
+    body.dark-theme .benefit-item:hover {
+        background: rgba(255, 255, 255, 0.03);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    .benefit-item .benefit-icon {
+        font-size: 2.5rem;
+        color: var(--bs-primary);
+        margin-bottom: 12px;
+        display: block;
+    }
+    .benefit-item h6 {
+        color: var(--bs-body-color);
+        font-weight: 700;
+    }
+    .benefit-item p {
+        color: var(--bs-secondary-color);
+        font-size: 0.85rem;
+        margin-bottom: 0;
+    }
+
+    /* ===== مراحل همکاری ===== */
+    .steps-wrapper {
+        position: relative;
+        padding: 20px 0;
+    }
+    .steps-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 10%;
+        left: 10%;
+        height: 2px;
+        background: var(--bs-border-color);
+        transform: translateY(-50%);
+        z-index: 0;
+    }
+    body.dark-theme .steps-wrapper::before {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .step-item {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    .step-item .step-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin: 0 auto 12px;
+        box-shadow: 0 4px 20px rgba(108, 43, 217, 0.25);
+    }
+    .step-item h6 {
+        color: var(--bs-body-color);
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+    .step-item p {
+        color: var(--bs-secondary-color);
+        font-size: 0.8rem;
+        margin-bottom: 0;
+    }
+
+    /* ===== بخش CTA ===== */
+    .cta-section {
+        background: var(--bs-body-bg);
+        border-radius: 40px 40px 0 0;
+        padding: 70px 0;
+        position: relative;
+        overflow: hidden;
+        margin-top: 40px;
+        border-top: 1px solid var(--bs-border-color);
+    }
+    body.dark-theme .cta-section {
+        background: var(--bs-secondary-bg);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .cta-section h2 {
+        color: var(--bs-body-color);
+    }
+    .cta-section .text-muted-custom {
+        color: var(--bs-secondary-color) !important;
+    }
+
+    .contact-info-box {
+        background: var(--bs-tertiary-bg);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid var(--bs-border-color);
+        max-width: 500px;
+        margin: 0 auto;
+        transition: all 0.3s ease;
+    }
+    body.dark-theme .contact-info-box {
+        background: rgba(255, 255, 255, 0.02);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+    .contact-info-box:hover {
+        border-color: var(--bs-primary);
+        box-shadow: 0 8px 30px rgba(108, 43, 217, 0.06);
+    }
+    .contact-info-box .phone-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--bs-primary);
+        direction: ltr;
+        letter-spacing: 2px;
+    }
+    body.dark-theme .contact-info-box .phone-number {
+        color: #8B5CF6;
+    }
+    .contact-info-box .address {
+        color: var(--bs-secondary-color);
+        font-size: 0.95rem;
+    }
+    .contact-info-box .work-hours {
+        color: var(--bs-secondary-color);
+        font-size: 0.85rem;
+    }
+
+    .stat-number-gradient {
+        font-weight: 800;
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #6C2BD9, #8B5CF6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    body.dark-theme .stat-number-gradient {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* ===== واکنش‌گرایی ===== */
+    @media (max-width: 992px) {
+        .steps-wrapper::before {
+            display: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-cooperate {
+            padding: 90px 0 40px;
+            min-height: auto;
+            border-radius: 0 0 24px 24px;
+        }
+        .cta-section {
+            border-radius: 24px 24px 0 0;
+            padding: 40px 20px;
+        }
+        .btn-primary-glow,
+        .btn-secondary-outline {
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-call {
+            padding: 14px 28px;
+            font-size: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+        .hero-cooperate .hero-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .cta-section .d-flex {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+        .btn-cta-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+        .cooperate-card {
+            padding: 24px 18px;
+        }
+        .contact-info-box .phone-number {
+            font-size: 1.5rem;
+        }
+        .stat-number-gradient {
+            font-size: 1.8rem;
+        }
+        .benefits-section {
+            padding: 40px 0;
+            border-radius: 24px;
+        }
+        .step-item {
+            margin-bottom: 20px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-cooperate h1 {
+            font-size: 1.8rem;
+        }
+        .hero-cooperate p {
+            font-size: 0.9rem;
+        }
+        .hero-badge {
+            font-size: 0.7rem;
+            padding: 4px 14px;
+        }
+        .cooperate-card {
+            padding: 18px 14px;
+        }
+        .cooperate-card ul li {
+            font-size: 0.8rem;
+        }
+        .cooperate-card .icon-wrapper {
+            width: 48px;
+            height: 48px;
+            font-size: 1.4rem;
+        }
+        .contact-info-box {
+            padding: 20px 16px;
+        }
+        .contact-info-box .phone-number {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cooperate-page">
+
+    <!-- ============================================================
+    بخش قهرمان (Hero)
+    ============================================================ -->
+    <section class="hero-cooperate">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <div class="hero-badge">
+                        <span class="pulse-dot"></span>
+                        🔥 فرصت‌های شغلی ویژه پارمی
+                    </div>
+                    <h1 class="display-3 fw-bold">
+                        به تیم <span class="text-gradient">پارمی</span> بپیوندید
+                    </h1>
+                    <p class="text-muted-custom fs-5" style="max-width: 520px; line-height: 2;">
+                        پارمی یک پلتفرم هوشمند مدیریت املاک است که با بهره‌گیری از تکنولوژی روز،
+                        فرآیند خرید، فروش و اجاره ملک را متحول کرده است. ما به دنبال افراد
+                        <strong>متعهد، حرفه‌ای و باانگیزه</strong> هستیم.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 hero-buttons">
+                        <a href="#roles" class="btn-primary-glow">
+                            <i class="bi bi-chevron-down me-2"></i>
+                            مشاهده نقش‌ها
+                        </a>
+                        <a href="#contact" class="btn-secondary-outline">
+                            <i class="bi bi-telephone me-2"></i>
+                            تماس با ما
+                        </a>
+                    </div>
+                    <div class="d-flex gap-4 mt-4">
+                        <div>
+                            <span class="d-block fw-bold stat-number-gradient">{{ active_staff }}+</span>
+                            <span class="text-muted-custom small">همکار فعال</span>
+                        </div>
+                        <div>
+                            <span class="d-block fw-bold stat-number-gradient">{{ total_properties }}+</span>
+                            <span class="text-muted-custom small">فایل ثبت شده</span>
+                        </div>
+                        <div>
+                            <span class="d-block fw-bold stat-number-gradient">{{ satisfaction_rate }}%</span>
+                            <span class="text-muted-custom small">رضایت مشتریان</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="text-center">
+                        <img src="{% static 'myassets/myimage/home/images(2).jpeg' %}"
+                             alt="همکاری پارمی"
+                             class="img-fluid"
+                             style="max-height: 380px; filter: drop-shadow(0 10px 40px rgba(108,43,217,0.1)); border-radius: 20px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش نقش‌ها
+    ============================================================ -->
+    <section class="py-5" id="roles">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold section-title">
+                    نقش‌های <span class="text-gradient">پارمی</span>
+                </h2>
+                <p class="section-subtitle">با توجه به مهارت و علاقه‌تان، یکی از این نقش‌ها را انتخاب کنید</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- ===== کارت 1: کارشناس ===== -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="cooperate-card">
+                        <div class="icon-wrapper">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <h5 class="fw-bold">کارشناس</h5>
+                        <span class="text-muted-custom small d-block" style="margin-top: -4px;">📞 پیگیری و اجرا</span>
+                        <ul>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> تماس با مشتریان و ثبت گزارش</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> معرفی فایل‌های مناسب به مشتری</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> ثبت درخواست بازدید و هماهنگی</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> تکمیل گزارش بازدید و نتیجه‌گیری</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> پیگیری تا مرحله مذاکره و قرارداد</li>
+                        </ul>
+                        <span class="role-badge">⭐ نقش اصلی عملیاتی</span>
+                    </div>
+                </div>
+
+                <!-- ===== کارت 2: سرپرست ===== -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="cooperate-card">
+                        <div class="icon-wrapper">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h5 class="fw-bold">سرپرست</h5>
+                        <span class="text-muted-custom small d-block" style="margin-top: -4px;">📊 مدیریت و نظارت</span>
+                        <ul>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> مدیریت تیم کارشناسان (تا ۵ نفر)</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> تایید گزارش‌های معرفی و بازدید</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> نظارت بر مهلت‌های انجام وظایف</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> ارسال اخطارهای خودکار به کارشناسان</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> گزارش‌گیری از عملکرد تیم</li>
+                        </ul>
+                        <span class="role-badge">⭐ نقش مدیریتی</span>
+                    </div>
+                </div>
+
+                <!-- ===== کارت 3: مدیر جلسه ===== -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="cooperate-card">
+                        <div class="icon-wrapper">
+                            <i class="bi bi-handshake"></i>
+                        </div>
+                        <h5 class="fw-bold">مدیر جلسه</h5>
+                        <span class="text-muted-custom small d-block" style="margin-top: -4px;">🤝 مذاکره و انعقاد</span>
+                        <ul>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> برگزاری جلسات مذاکره حضوری</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> مدیریت فرآیند چانه‌زنی و توافق</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> ثبت نتیجه جلسه و پیشنهادات</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> هماهنگی برای تنظیم قرارداد</li>
+                            <li><span class="check-icon"><i class="bi bi-check-lg"></i></span> تبدیل بازدید به معامله موفق</li>
+                        </ul>
+                        <span class="role-badge">⭐ نقش کلیدی در فروش</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="#contact" class="btn-call">
+                    <i class="bi bi-telephone-fill"></i>
+                    تماس بگیرید
+                </a>
+                <p class="text-muted-custom small mt-2">برای هماهنگی مصاحبه حضوری با ما تماس بگیرید</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش مزایا
+    ============================================================ -->
+    <section class="benefits-section">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2 class="display-6 fw-bold section-title">
+                    چرا <span class="text-gradient">پارمی</span>؟
+                </h2>
+                <p class="section-subtitle">مزایای همکاری با بزرگترین پلتفرم مدیریت املاک هوشمند</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-item">
+                        <span class="benefit-icon"><i class="bi bi-graph-up"></i></span>
+                        <h6>درآمد عالی</h6>
+                        <p>کمیسیون‌های رقابتی و امکان رشد درآمد با عملکرد بهتر</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-item">
+                        <span class="benefit-icon"><i class="bi bi-clock-history"></i></span>
+                        <h6>ساعت کاری منعطف</h6>
+                        <p>امکان فعالیت در ساعات دلخواه (حتی به‌صورت پاره‌وقت)</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-item">
+                        <span class="benefit-icon"><i class="bi bi-laptop"></i></span>
+                        <h6>پلتفرم هوشمند</h6>
+                        <p>دسترسی به سامانه پیشرفته مدیریت املاک با قابلیت‌های AI</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-item">
+                        <span class="benefit-icon"><i class="bi bi-mortarboard"></i></span>
+                        <h6>آموزش و پشتیبانی</h6>
+                        <p>آموزش‌های تخصصی و پشتیبانی ۲۴/۷ برای موفقیت شما</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش مراحل همکاری
+    ============================================================ -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-6 fw-bold section-title">
+                    مراحل <span class="text-gradient">همکاری</span>
+                </h2>
+                <p class="section-subtitle">در ۵ قدم ساده به تیم پارمی بپیوندید</p>
+            </div>
+
+            <div class="row steps-wrapper">
+                <div class="col-md-2 col-6 step-item">
+                    <div class="step-number">۱</div>
+                    <h6>تماس با ما</h6>
+                    <p>با شماره تماس بگیرید</p>
+                </div>
+                <div class="col-md-2 col-6 step-item">
+                    <div class="step-number">۲</div>
+                    <h6>مصاحبه تلفنی</h6>
+                    <p>بررسی اولیه مهارت‌ها</p>
+                </div>
+                <div class="col-md-2 col-6 step-item">
+                    <div class="step-number">۳</div>
+                    <h6>جلسه حضوری</h6>
+                    <p>مصاحبه در دفتر پارمی</p>
+                </div>
+                <div class="col-md-2 col-6 step-item">
+                    <div class="step-number">۴</div>
+                    <h6>آموزش</h6>
+                    <p>آموزش سامانه و فرآیندها</p>
+                </div>
+                <div class="col-md-2 col-6 step-item">
+                    <div class="step-number">۵</div>
+                    <h6>شروع کار</h6>
+                    <p>فعالیت در تیم پارمی</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    بخش CTA با اطلاعات تماس
+    ============================================================ -->
+    <section class="cta-section" id="contact">
+        <div class="container">
+            <div class="text-center position-relative" style="z-index: 2;">
+                <h2 class="display-5 fw-bold">
+                    آماده‌اید به <span class="text-gradient">تیم پارمی</span> بپیوندید؟
+                </h2>
+                <p class="text-muted-custom fs-5 mb-4">
+                    با ما تماس بگیرید و اولین قدم را بردارید
+                </p>
+
+                <div class="contact-info-box">
+                    <div class="mb-2">
+                        <i class="bi bi-telephone-fill text-primary fs-4"></i>
+                    </div>
+                    <div class="phone-number">
+                        <a href="tel:09111775407" class="text-decoration-none" style="color: inherit;">
+                            ۰۹۱۱ ۱۷۷ ۵۴۰۷
+                        </a>
+                    </div>
+                    <p class="address mt-3">
+                        <i class="bi bi-geo-alt me-2"></i>
+                        گرگان، بلوار ناهارخوران، مجتمع تجاری پارمی
+                    </p>
+                    <p class="work-hours">
+                        <i class="bi bi-clock me-2"></i>
+                        شنبه تا چهارشنبه: ۹ صبح تا ۶ عصر | پنجشنبه: ۹ صبح تا ۱ ظهر
+                    </p>
+                    <hr class="my-3" style="border-color: var(--bs-border-color); opacity: 0.3;">
+                    <p class="small text-muted-custom">
+                        <i class="bi bi-info-circle me-1"></i>
+                        پس از تماس، هماهنگی برای مصاحبه حضوری انجام خواهد شد
+                    </p>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
+                    <a href="https://t.me/parami" target="_blank" class="btn-cta-secondary">
+                        <i class="bi bi-send"></i>
+                        کانال تلگرام
+                    </a>
+                    <a href="https://instagram.com/parami" target="_blank" class="btn-cta-secondary">
+                        <i class="bi bi-instagram"></i>
+                        اینستاگرام
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

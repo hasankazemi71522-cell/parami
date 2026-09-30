@@ -1,0 +1,64 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+
+{% block content %}
+    <div class="product-slider-box-title dark_back_color">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">رد</span>
+            <span>فرم</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white dark_back_color">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        رد فرم: {{ instance.custom_name|default:instance.title }}
+                    </h5>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>توجه:</strong> با رد این فرم، وضعیت آن به "رد شده" تغییر خواهد کرد و کاربر از آن مطلع خواهد شد.
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>عنوان فرم:</strong> {{ instance.title }}</p>
+                            <p><strong>ایجاد شده توسط:</strong> {{ instance.created_by.get_full_name|default:instance.created_by.username }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>وضعیت فعلی:</strong>
+                                <span class="badge bg-warning">{{ instance.get_status_display }}</span>
+                            </p>
+                            <p><strong>تاریخ ایجاد:</strong> {{ instance.started_at|date:"Y/m/d H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">دلیل رد <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="reason" name="reason" rows="4"
+                                      placeholder="لطفاً دلیل رد این فرم را به طور کامل وارد کنید..."
+                                      required></textarea>
+                            <small class="text-muted">این دلیل به کاربر نمایش داده خواهد شد.</small>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-x-circle"></i> تایید رد
+                            </button>
+                            <a href="{% url 'form_flow:form_detail' instance.id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-right"></i> بازگشت
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

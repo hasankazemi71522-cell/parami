@@ -1,0 +1,77 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block Header_ref %}
+{% endblock %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">{{ title }}</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">نام نقش <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name" name="name"
+                           value="{{ role.name|default:'' }}"
+                           placeholder="مثال: manager"
+                           {% if role %}readonly{% endif %}
+                           required>
+                    <small class="text-muted">نام یکتای نقش (فقط حروف انگلیسی، زیرخط و خط تیره)</small>
+                    {% if role %}
+                        <br><small class="text-warning">نام نقش قابل تغییر نیست</small>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="title" class="form-label">عنوان نمایشی <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title"
+                           value="{{ role.title|default:'' }}"
+                           placeholder="مثال: مدیر سیستم"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">توضیحات</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"
+                              placeholder="توضیحات مربوط به این نقش">{{ role.description|default:'' }}</textarea>
+                </div>
+
+                {% if role %}
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                               {% if role.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">فعال</label>
+                    </div>
+                {% endif %}
+
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i>
+                        {% if role %}بروزرسانی{% else %}ایجاد{% endif %}
+                    </button>
+                    <a href="{% url 'site_profile:role_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-right"></i> بازگشت
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block Footer_ref %}
+{% endblock %}

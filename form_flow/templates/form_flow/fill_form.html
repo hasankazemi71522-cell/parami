@@ -1,0 +1,254 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load permission_tags %}
+{% load form_filters %}
+
+{% block content %}
+    <div class="product-slider-box-title">
+        <h4 class="title-font product-slider-box-title-title dot">
+            <span class="main-color-one-color">پر کردن</span>
+            <span>فرم</span>
+        </h4>
+    </div>
+    <div class="slider-parent rounded-4 border-ui content-box">
+        <div class="container-fluid">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center dark_back_color">
+                    <h5>{{ instance.custom_name|default:instance.title }}</h5>
+                    <span class="badge bg-primary">مرحله {{ instance.current_step_number }}</span>
+                </div>
+                <div class="card-body dark_back_color">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ایجاد شده توسط:</strong> {{ instance.created_by.get_full_name }}</p>
+                            <p><strong>تاریخ شروع:</strong> {{ instance.started_at|date:"Y/m/d H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>پیشرفت مرحله:</strong> {{ step_progress.filled }} / {{ step_progress.total }}
+                                {% if step_progress.required_total > 0 %}
+                                    <span class="badge bg-info ms-2">
+                                        اجباری: {{ step_progress.required_filled }}/{{ step_progress.required_total }}
+                                    </span>
+                                {% endif %}
+                            </p>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: {{ step_progress.percentage }}%;">
+                                    {{ step_progress.percentage|floatformat:0 }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ======== نمایش هشدار فیلدهای اجباری خالی ======== -->
+                    {% if empty_required_fields %}
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>فیلدهای اجباری زیر هنوز تکمیل نشده‌اند:</strong>
+                            <ul>
+                                {% for field in empty_required_fields %}
+                                    <li>{{ field }}</li>
+                                {% endfor %}
+                            </ul>
+                            <small>برای رفتن به مرحله بعد، باید همه فیلدهای اجباری را تکمیل کنید.</small>
+                        </div>
+                    {% else %}
+                        {% if step_progress.filled < step_progress.total %}
+                            <div class="alert alert-success mt-3">
+                                <i class="bi bi-check-circle"></i>
+                                همه فیلدهای اجباری تکمیل شده‌اند. می‌توانید فیلدهای اختیاری را هم پر کنید یا به مرحله بعد بروید.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" id="fillForm">
+                {% csrf_token %}
+
+                <!-- ============ فیلدهای قابل پر کردن ============ -->
+                {% if step_fields %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        فیلدهایی که می‌توانید پر کنید:
+                    </div>
+                    {% for field in step_fields %}
+                        <div class="mb-3">
+                            <label for="{{ field.field_name }}" class="form-label">
+                                {{ field.field_title }}
+                                {% if field.is_required %}
+                                    <span class="text-danger">* (اجباری)</span>
+                                {% else %}
+                                    <span class="text-muted">(اختیاری)</span>
+                                {% endif %}
+                            </label>
+
+                            {% with input_type=field.original_input.input.input_type %}
+                                {% if input_type == 'text' %}
+                                    <input type="text" class="form-control"
+                                           name="{{ field.field_name }}"
+                                           value="{{ existing_values|get_item:field.id }}"
+                                           {% if field.max_length %}maxlength="{{ field.max_length }}"{% endif %}
+                                           placeholder="{{ field.placeholder|default:'' }}">
+
+                                {% elif input_type == 'textarea' %}
+                                    <textarea class="form-control"
+                                              name="{{ field.field_name }}"
+                                              rows="4"
+                                              placeholder="{{ field.placeholder|default:'' }}">{{ existing_values|get_item:field.id }}</textarea>
+
+                                {% elif input_type == 'number' %}
+                                    <input type="number" class="form-control"
+                                           name="{{ field.field_name }}"
+                                           value="{{ existing_values|get_item:field.id }}"
+                                           {% if field.min_value %}min="{{ field.min_value }}"{% endif %}
+                                           {% if field.max_value %}max="{{ field.max_value }}"{% endif %}
+                                           placeholder="{{ field.placeholder|default:'' }}">
+
+                                {% elif input_type == 'select' %}
+                                    <select class="form-select" name="{{ field.field_name }}">
+                                        <option value="">انتخاب کنید...</option>
+                                        {% for option in field.field_options.all %}
+                                            <option value="{{ option.key }}" {% if existing_values|get_item:field.id == option.key %}selected{% endif %}>
+                                                {{ option.value }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+
+                                {% elif input_type == 'radio' %}
+                                    <div>
+                                        {% for option in field.field_options.all %}
+                                            <div class="form-check">
+                                                <input type="radio" class="form-check-input"
+                                                       name="{{ field.field_name }}"
+                                                       value="{{ option.key }}"
+                                                       {% if existing_values|get_item:field.id == option.key %}checked{% endif %}>
+                                                <label class="form-check-label">{{ option.value }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                {% elif input_type == 'checkbox' %}
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input"
+                                               name="{{ field.field_name }}"
+                                               {% if existing_values|get_item:field.id %}checked{% endif %}>
+                                        <label class="form-check-label">{{ field.help_text|default:"فعال" }}</label>
+                                    </div>
+
+                                {% elif input_type == 'file' %}
+                                    <input type="file" class="form-control"
+                                           name="{{ field.field_name }}">
+                                    {% if existing_values|get_item:field.id %}
+                                        <small class="text-muted">فایل قبلی: {{ existing_values|get_item:field.id }}</small>
+                                    {% endif %}
+
+                                {% elif input_type == 'image' %}
+                                    <input type="file" class="form-control"
+                                           name="{{ field.field_name }}"
+                                           accept="image/*">
+                                    {% if existing_values|get_item:field.id %}
+                                        <img src="{{ existing_values|get_item:field.id }}" style="max-width:200px; max-height:200px;" class="mt-2">
+                                    {% endif %}
+
+                                {% elif input_type == 'date' %}
+                                    <input type="date" class="form-control"
+                                           name="{{ field.field_name }}"
+                                           value="{{ existing_values|get_item:field.id }}">
+
+                                {% else %}
+                                    <input type="text" class="form-control"
+                                           name="{{ field.field_name }}"
+                                           value="{{ existing_values|get_item:field.id }}">
+                                {% endif %}
+                            {% endwith %}
+
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        در این مرحله فیلدی برای پر کردن ندارید.
+                    </div>
+                {% endif %}
+
+                <!-- ============ فیلدهای فقط نمایشی ============ -->
+                {% if readonly_fields %}
+                    <div class="alert alert-secondary mt-3">
+                        <i class="bi bi-eye"></i>
+                        فیلدهایی که قبلاً پر شده‌اند یا دسترسی ندارید:
+                    </div>
+                    {% for field in readonly_fields %}
+                        <div class="mb-3">
+                            <label class="form-label text-muted">
+                                {{ field.field_title }}
+                                {% if field.is_filled %}
+                                    <span class="badge bg-success">✓ پر شده</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">فقط نمایش</span>
+                                {% endif %}
+                            </label>
+                            <div class="form-control" style="background-color: #f8f9fa;">
+                                {% if existing_values|get_item:field.id %}
+                                    {{ existing_values|get_item:field.id }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- ============ دکمه‌های اقدام ============ -->
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    {% if step_fields %}
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                            <i class="bi bi-save"></i> ذخیره تغییرات
+                        </button>
+                    {% endif %}
+
+                    <!-- دکمه رفتن به مرحله بعد (فقط در صورت تکمیل فیلدهای اجباری) -->
+                    {% if step_progress.all_required_filled and step_progress.filled > 0 %}
+                        <button type="submit" name="complete_step" value="1" class="btn btn-success">
+                            <i class="bi bi-arrow-right"></i> رفتن به مرحله بعد
+                        </button>
+                    {% elif empty_required_fields %}
+                        <button type="button" class="btn btn-secondary" disabled>
+                            <i class="bi bi-lock"></i>
+                            ابتدا فیلدهای اجباری را تکمیل کنید
+                        </button>
+                    {% else %}
+                        <button type="button" class="btn btn-secondary" disabled>
+                            <i class="bi bi-arrow-right"></i>
+                            حداقل یک فیلد را پر کنید
+                        </button>
+                    {% endif %}
+
+                    <a href="{% url 'form_flow:my_tasks' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> بازگشت به وظایف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+<!-- ============ JavaScript ============ -->
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('fillForm');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // اگر دکمه complete_step کلیک شده، اعتبارسنجی سمت کلاینت انجام نمیشه
+            // چون بک‌اند چک میکنه
+            console.log('📤 فرم در حال ارسال...');
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,287 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+{% load jalali_filters %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot text-center">
+        <span class="main-color-one-color">داشبورد</span>
+        <span>کارشناس</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box p-4">
+
+    <!-- ====== نمایش پیغام‌ها ====== -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ====== وضعیت ظرفیت کارشناس ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm {% if stats.is_available %}border-success{% else %}border-danger{% endif %}">
+                <div class="card-body d-flex align-items-center justify-content-between dark_back_color">
+                    <div>
+                        <h6 class="mb-0">
+                            <i class="fas fa-users"></i> وضعیت ظرفیت شما
+                        </h6>
+                        <small class="text-muted">
+                            {{ stats.active_count }} از {{ stats.max_capacity }} پرونده فعال
+                        </small>
+                    </div>
+                    <span class="badge {% if stats.is_available %}bg-success{% else %}bg-danger{% endif %} fs-6 p-2">
+                        {% if stats.is_available %}
+                            <i class="fas fa-check-circle"></i> در دسترس
+                        {% else %}
+                            <i class="fas fa-times-circle"></i> تکمیل ظرفیت
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'case_management:calculate_matches_for_all' %}"
+               class="btn btn-warning shadow-sm"
+               onclick="return confirm('آیا از به‌روزرسانی تطابق‌های همه مشتریان خود اطمینان دارید؟ این عملیات ممکن است چند ثانیه طول بکشد.');">
+                <i class="fas fa-sync-alt"></i> به‌روزرسانی تطابق‌های همه مشتریان
+            </a>
+        </div>
+    </div>
+
+    <!-- ====== آمار سریع ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.assigned }}</h3>
+                    <p class="mb-0"><i class="fas fa-clock"></i> اختصاص داده شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.contacted }}</h3>
+                    <p class="mb-0"><i class="fas fa-phone"></i> تماس گرفته شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.introduced }}</h3>
+                    <p class="mb-0"><i class="fas fa-file-alt"></i> معرفی انجام شد</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.visit_pending|add:stats.visit_scheduled }}</h3>
+                    <p class="mb-0"><i class="fas fa-building"></i> در انتظار بازدید</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== آمار تکمیلی ====== -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-6">
+            <div class="card bg-purple text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.contract_pending|default:0 }}</h3>
+                    <p class="mb-0"><i class="fas fa-file-contract"></i> در واحد قرارداد</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-negotiation text-white shadow-sm">
+                <div class="card-body">
+                    <h3>{{ stats.negotiation }}</h3>
+                    <p class="mb-0"><i class="fas fa-handshake"></i> در مرحله مذاکره</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== فیلتر و جستجو ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-5">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control" placeholder="جستجو بر اساس نام یا موبایل مشتری..." value="{{ search }}">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">همه وضعیت‌ها</option>
+                {% for code, label in process_statuses %}
+                <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'case_management:expert_dashboard' %}" class="btn btn-secondary w-100">
+                <i class="fas fa-times"></i> پاک کردن
+            </a>
+        </div>
+        <div class="col-md-2 text-end">
+            <span class="badge bg-secondary fs-6">کل فرآیندها: {{ stats.total }}</span>
+        </div>
+    </div>
+
+    <!-- ====== لیست فرآیندها ====== -->
+    <div class="table-responsive">
+        <table class="table table-hover table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>مشتری</th>
+                    <th>وضعیت</th>
+                    <th>فایل‌های مناسب</th>
+                    <th>سرپرست</th>
+                    <th>زمان انتساب</th>
+                    <th>مهلت تماس</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in processes %}
+                <tr>
+                    <td>
+                        <strong>{{ process.customer.full_name }}</strong>
+                        <br><small class="text-muted">{{ process.customer.mobile }}</small>
+                    </td>
+                    <td>
+                        <span class="badge
+                            {% if process.status == 'assigned' %}bg-secondary
+                            {% elif process.status == 'contact_pending' %}bg-secondary
+                            {% elif process.status == 'contacted' %}bg-success
+                            {% elif process.status == 'intro_pending' %}bg-warning text-dark
+                            {% elif process.status == 'introduced' %}bg-info
+                            {% elif process.status == 'visit_pending' %}bg-warning text-dark
+                            {% elif process.status == 'visit_scheduled' %}bg-primary
+                            {% elif process.status == 'visit_done' %}bg-info
+                            {% elif process.status == 'negotiation' %}bg-negotiation
+                            {% elif process.status == 'contract_pending' %}bg-purple
+                            {% elif process.status == 'closed_success' %}bg-success
+                            {% elif process.status == 'closed_fail' %}bg-danger
+                            {% elif process.status == 'cancelled' %}bg-secondary
+                            {% elif process.status == 'converted' %}bg-success
+                            {% elif process.status == 'sent_to_accounting' %}bg-secondary
+                            {% else %}bg-dark{% endif %}">
+                            {{ process.get_status_display }}
+                        </span>
+                        {% if process.is_contact_deadline_passed and process.status == 'assigned' %}
+                            <span class="badge bg-danger">مهلت گذشته</span>
+                        {% endif %}
+                        {% if process.status == 'contract_pending' %}
+                            <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> در انتظار قرارداد</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if process.pending_intro_count > 0 %}
+                            <span class="badge bg-primary rounded-pill">{{ process.pending_intro_count }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">۰</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ process.supervisor.get_full_name }}</td>
+                    <td>{{ process.assigned_at|show_jalali }}</td>
+                    <td>
+                        {% if process.contact_deadline %}
+                            {{ process.contact_deadline|show_jalali }}
+                            {% if process.is_contact_deadline_passed and not process.contact_made_at %}
+                                <span class="badge bg-danger">گذشته</span>
+                            {% endif %}
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'case_management:expert_process_detail' process.id %}"
+                               class="btn btn-sm btn-info" title="مشاهده جزئیات فرآیند">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if process.status != 'contract_pending' and process.status != 'sent_to_accounting' %}
+                            <a href="{% url 'case_management:calculate_matches_for_customer' process.customer.id %}"
+                               class="btn btn-sm btn-warning" title="به‌روزرسانی تطابق‌های این مشتری"
+                               onclick="return confirm('تطابق‌های مشتری {{ process.customer.full_name }} به‌روزرسانی شود؟');">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-check-circle fa-2x d-block mb-2"></i>
+                            <strong>هیچ فرآیندی یافت نشد</strong>
+                            <p class="mb-0">هنوز هیچ فرآیندی به شما اختصاص داده نشده است.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ====== Pagination ====== -->
+    {% include 'shared_index/_pagination.html' with page_obj=processes %}
+
+</div>
+
+<!-- ====== استایل اختصاصی ====== -->
+<style>
+    .table td { vertical-align: middle; }
+    .table th { vertical-align: middle; }
+    .badge { font-size: 0.85rem; }
+    .card { transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn-group .btn { margin: 0 2px; }
+    .slider-parent { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .btn-warning { color: #212529; }
+    .btn-warning:hover { background-color: #e0a800; border-color: #d39e00; }
+
+    /* رنگ‌های جدید برای وضعیت‌های جدید */
+    .bg-purple {
+        background-color: #6f42c1 !important;
+        color: white !important;
+    }
+    .bg-negotiation {
+        background-color: #fd7e14 !important;
+        color: white !important;
+    }
+    .bg-contract-pending {
+        background-color: #6f42c1 !important;
+        color: white !important;
+    }
+
+    /* کارت‌های آمار با رنگ‌های جدید */
+    .bg-purple.bg-purple {
+        background-color: #6f42c1 !important;
+    }
+    .bg-negotiation.bg-negotiation {
+        background-color: #fd7e14 !important;
+    }
+
+    /* وضعیت ظرفیت */
+    .border-success {
+        border-color: #198754 !important;
+    }
+    .border-danger {
+        border-color: #dc3545 !important;
+    }
+</style>
+
+{% endblock %}

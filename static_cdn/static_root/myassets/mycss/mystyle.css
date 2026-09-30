@@ -1,0 +1,42 @@
+
+[data-bs-theme="dark"] h1,
+[data-bs-theme="dark"] h2,
+[data-bs-theme="dark"] h3,
+[data-bs-theme="dark"] h4,
+[data-bs-theme="dark"] h5,
+[data-bs-theme="dark"] h6,
+[data-bs-theme="dark"] a,
+[data-bs-theme="dark"] span,
+[data-bs-theme="dark"] strong,
+[data-bs-theme="dark"] p,
+[data-bs-theme="dark"] i,
+[data-bs-theme="dark"] div,
+[data-bs-theme="dark"] li,
+[data-bs-theme="dark"] button,
+[data-bs-theme="dark"] input,
+[data-bs-theme="dark"] label{
+    color: #ffffff !important;
+
+}
+
+[data-bs-theme="dark"] .product-slider-box-title {
+    background-color: #030303 !important;
+}
+
+[data-bs-theme="dark"] .app-content {
+    background-color: #030303 !important;
+}
+
+[data-bs-theme="dark"] .content-box {
+    background-color: #262626 !important;
+}
+
+[data-bs-theme="dark"] .dark_back_color {
+    background-color: #262626 !important;
+    color: white !important;
+}
+
+[data-bs-theme="dark"] .dark_back_color2 {
+    background-color: #505050 !important;
+    color: white !important;
+}

@@ -1,0 +1,31 @@
+{% extends 'shared_index/_Mainlayout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-slider-box-title">
+    <h4 class="title-font product-slider-box-title-title dot">
+        <span class="main-color-one-color">حذف</span>
+        <span>استان</span>
+    </h4>
+</div>
+
+<div class="slider-parent rounded-4 border-ui content-box">
+    <div class="text-center py-5">
+        <i class="fas fa-exclamation-triangle text-danger fa-4x mb-3"></i>
+        <h5>آیا از حذف استان "{{ province.name }}" مطمئن هستید؟</h5>
+        <p class="text-muted">
+            با حذف این استان، تمام شهرستان‌ها و محله‌های مرتبط با آن نیز حذف خواهند شد.
+        </p>
+
+        <form method="POST" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> بله، حذف کن
+            </button>
+            <a href="{% url 'estate:province_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> انصراف
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}
